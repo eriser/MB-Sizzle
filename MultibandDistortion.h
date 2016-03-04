@@ -21,6 +21,7 @@ private:
   double mInputGain;
   double mOutputGain;
   int mDistType;
+  int mPolynomials;
   int channelCount;
   bool mAutoGainComp;
   bool mOutputClipping;

@@ -8,6 +8,7 @@ const int kNumPrograms = 1;
 enum EParams
 {
   kDistType = 0,
+  kNumPolynomials,
   kInputGain,
   kOutputGain,
   kAutoGainComp,
@@ -30,6 +31,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //Initialize Parameters
   //arguments are: name, defaultVal, minVal, maxVal, step, label
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
+  GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
@@ -112,8 +114,20 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         }
       }
       
+      //First 3 order chebyshev polynomials
       else if (mDistType==5){
+        //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
         
+        double chebyshev[7];
+        chebyshev[0] = sample;
+        chebyshev[1] = 2 * sample * sample - 1;
+        chebyshev[2] = 4 * pow(sample, 3) - 3 * sample;
+        chebyshev[3] = 8 * pow(sample, 4) - 8 * sample * sample + 1;
+        chebyshev[4] = 16 * pow(sample, 5) - 20 * pow(sample,3) - 7 * sample;
+        for(int i=1; i<mPolynomials; i++){
+          sample+=chebyshev[i];
+          sample*=.5;
+        }
       }
       
       else if (mDistType==6){
@@ -172,6 +186,10 @@ void MultibandDistortion::OnParamChange(int paramIdx)
   {
     case kDistType:
       mDistType = GetParam(kDistType)->Value();
+      break;
+      
+    case kNumPolynomials:
+      mPolynomials = GetParam(kNumPolynomials)->Value();
       break;
       
     case kInputGain:
