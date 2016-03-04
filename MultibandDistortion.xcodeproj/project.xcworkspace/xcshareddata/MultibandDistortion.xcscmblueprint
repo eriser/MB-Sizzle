@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "EA9C659338A95E3179DF8A53B7AE75540201B6E3",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "11B94510860470908E89574702597330C32284A3" : 0,
+    "EA9C659338A95E3179DF8A53B7AE75540201B6E3" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "66DAAF61-7179-436A-96D3-9E46BB20E583",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "11B94510860470908E89574702597330C32284A3" : "..",
+    "EA9C659338A95E3179DF8A53B7AE75540201B6E3" : "EECS352-Multiband-Distortion-Plugin\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "MultibandDistortion",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "MultibandDistortion.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/michaeldonovan\/wdl-ol.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "11B94510860470908E89574702597330C32284A3"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/michaeldonovan\/EECS352-Multiband-Distortion-Plugin.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "EA9C659338A95E3179DF8A53B7AE75540201B6E3"
+    }
+  ]
+}

@@ -22,6 +22,8 @@ private:
   double mOutputGain;
   int mDistType;
   int channelCount;
+  bool mAutoGainComp;
+  bool mOutputClipping;
 };
 
 #endif

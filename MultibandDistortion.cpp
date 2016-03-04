@@ -10,6 +10,8 @@ enum EParams
   kDistType = 0,
   kInputGain,
   kOutputGain,
+  kAutoGainComp,
+  kOutputClipping,
   kNumParams
 };
 
@@ -30,7 +32,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
-
+  GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
+  GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
@@ -63,8 +66,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       
       /////////////////////////////////////////////////////////////////////
       //Apply distortion
-      //First four algorithms are from my previous plugin
-      //I left four more blank spaces for us to experiment with others. Can add more if needed.
+ 
       
       //Soft asymmetrical clipping
       //algorithm by Bram de Jong, from musicdsp.org archives
@@ -77,7 +79,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
           sample = (sample + 1)/2;
       }
       
-      //Atan waveshaper
+      //arctan waveshaper
       else if(mDistType==2){
         double amount = 3;
         sample =  fastAtan(sample * amount);
@@ -131,7 +133,23 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       
       
       //Apply output gain
-      sample *= DBToAmp(mOutputGainSmoother->process(mOutputGain));
+      if (mAutoGainComp) {
+        sample *= DBToAmp(mOutputGainSmoother->process(-1*mInputGain));
+      }
+      else{
+        sample *= DBToAmp(mOutputGainSmoother->process(mOutputGain));
+      }
+      
+      
+      //Clipping
+      if(mOutputClipping){
+        if (sample>1) {
+          sample = DBToAmp(-0.1);
+        }
+        else if (sample<-1) {
+          sample = -1*DBToAmp(-0.1);
+        }
+      }
       
       
       *output = sample;
@@ -162,6 +180,14 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     
     case kOutputGain:
       mOutputGain = GetParam(kOutputGain)->Value();
+      break;
+      
+    case kAutoGainComp:
+      mAutoGainComp=GetParam(kAutoGainComp)->Value();
+      break;
+      
+    case kOutputClipping:
+      mOutputClipping = GetParam(kOutputClipping)->Value();
       break;
       
     default:
