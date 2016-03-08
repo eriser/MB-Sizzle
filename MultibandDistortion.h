@@ -54,6 +54,8 @@ private:
   bool mAutoGainComp;
   bool mOutputClipping;
   
+
+  
 };
 
 #endif

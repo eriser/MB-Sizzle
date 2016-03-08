@@ -74,6 +74,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
 
+  
+  
+  
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
   mOutputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
@@ -297,6 +300,38 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       
     case kOutputClipping:
       mOutputClipping = GetParam(kOutputClipping)->Value();
+      break;
+      
+    case kDrive1:
+      mDrive1=GetParam(kDrive1)->Value();
+      break;
+
+    case kDrive2:
+      
+      break;
+      
+    case kDrive3:
+      mDrive3=GetParam(kDrive3)->Value();
+      break;
+      
+    case kDrive4:
+      mDrive4=GetParam(kDrive4)->Value();
+      break;
+      
+    case kMix1:
+      mMix1=GetParam(kMix1)->Value();
+      break;
+
+    case kMix2:
+      mMix2=GetParam(kMix2)->Value();
+      break;
+      
+    case kMix3:
+      mMix3=GetParam(kMix3)->Value();
+      break;
+      
+    case kMix4:
+      mMix4=GetParam(kMix4)->Value();
       break;
       
     default:
