@@ -42,7 +42,6 @@ public:
         mPlug->GetGUI()->SetAllControlsDirty();
     }
     
-    //void OnMouseWheel(int x, int y, IMouseMod* pMod, int d){} //TODO: popup menus seem to hog the mousewheel
 private:
     IColor mColor;
     IColor mColorFG;

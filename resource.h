@@ -56,11 +56,12 @@ instrument determined by PLUG _IS _INST
 // Unique IDs for each image resource.
 #define SLIDER_ID 101
 #define BYPASS_ID 102
+#define BYPASSSMALL_ID 103
 
 // Image resource locations for this plug.
 #define SLIDER_FN "resources/img/Slider.png"
 #define BYPASS_FN "resources/img/Bypass.png"
-
+#define BYPASSSMALL_FN "resources/img/BypassSmall.png"
 // GUI default dimensions
 #define GUI_WIDTH 460
 #define GUI_HEIGHT 370

@@ -66,6 +66,10 @@
 		4CB19A611C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
 		4CB19A771C8E992100A12761 /* ICrossoverControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CB19A761C8E992100A12761 /* ICrossoverControl.h */; };
 		4CB19A781C8E992100A12761 /* ICrossoverControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CB19A761C8E992100A12761 /* ICrossoverControl.h */; };
+		4CB19A7A1C8EAAF200A12761 /* BypassSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A791C8EAAF200A12761 /* BypassSmall.png */; };
+		4CB19A7B1C8EAAF200A12761 /* BypassSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A791C8EAAF200A12761 /* BypassSmall.png */; };
+		4CB19A7C1C8EAAF200A12761 /* BypassSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A791C8EAAF200A12761 /* BypassSmall.png */; };
+		4CB19A7D1C8EAAF200A12761 /* BypassSmall.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A791C8EAAF200A12761 /* BypassSmall.png */; };
 		4CED85851C8E011500B832EF /* FFTRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED85841C8E011500B832EF /* FFTRect.h */; };
 		4CED85861C8E011500B832EF /* FFTRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED85841C8E011500B832EF /* FFTRect.h */; };
 		4CED85901C8E056C00B832EF /* denormal.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED858D1C8E056C00B832EF /* denormal.h */; };
@@ -499,6 +503,7 @@
 		4CB19A5B1C8E691400A12761 /* Bypass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Bypass.png; path = resources/img/Bypass.png; sourceTree = "<group>"; };
 		4CB19A711C8E7FB500A12761 /* IPopupMenuControl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPopupMenuControl.h; sourceTree = "<group>"; };
 		4CB19A761C8E992100A12761 /* ICrossoverControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ICrossoverControl.h; sourceTree = "<group>"; };
+		4CB19A791C8EAAF200A12761 /* BypassSmall.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = BypassSmall.png; path = resources/img/BypassSmall.png; sourceTree = "<group>"; };
 		4CED85841C8E011500B832EF /* FFTRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FFTRect.h; sourceTree = "<group>"; };
 		4CED858D1C8E056C00B832EF /* denormal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = denormal.h; sourceTree = "<group>"; };
 		4CED858E1C8E056C00B832EF /* fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fft.c; sourceTree = "<group>"; };
@@ -1339,6 +1344,7 @@
 		4FD16A0213B6303B001D0217 /* img */ = {
 			isa = PBXGroup;
 			children = (
+				4CB19A791C8EAAF200A12761 /* BypassSmall.png */,
 				4CB19A5B1C8E691400A12761 /* Bypass.png */,
 				4CED85991C8E0A6F00B832EF /* Slider.png */,
 			);
@@ -1753,6 +1759,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CB19A7B1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859B1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A5D1C8E691400A12761 /* Bypass.png in Resources */,
 			);
@@ -1762,6 +1769,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CB19A7D1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859D1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A5F1C8E691400A12761 /* Bypass.png in Resources */,
 			);
@@ -1780,6 +1788,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CB19A7C1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859C1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A5E1C8E691400A12761 /* Bypass.png in Resources */,
 			);
@@ -1800,6 +1809,7 @@
 				4CED859A1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4F78D88613B6382B0032E0F3 /* MultibandDistortion.icns in Resources */,
 				4F78D89913B639100032E0F3 /* InfoPlist.strings in Resources */,
+				4CB19A7A1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4F78D89A13B639100032E0F3 /* MainMenu.xib in Resources */,
 				4CB19A5C1C8E691400A12761 /* Bypass.png in Resources */,
 			);

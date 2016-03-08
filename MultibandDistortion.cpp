@@ -29,6 +29,7 @@ enum EParams
   kDistMode2,
   kDistMode3,
   kDistMode4,
+  kSpectBypass,
   kNumParams
 };
 
@@ -36,6 +37,8 @@ enum ELayout
 {
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
+  
+  kNumModes,
   
   kDriveY = 135,
   kDrive1X = 50,
@@ -47,6 +50,9 @@ enum ELayout
   kMix2X = kMix1X+100,
   kMix3X = kMix2X+100,
   kMix4X = kMix3X+100,
+  
+  kSpectBypassX = 42,
+  kSpectBypassY = 22,
   
   kSliderFrames=33
 };
@@ -67,6 +73,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
+  GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   
   
   GetParam(kDrive1)->InitDouble("Band 1: Drive", 0., 0., 36., 0.0001, "dB");
@@ -84,7 +91,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kBand3Bypass)->InitBool("Band 3: Bypass", true);
   GetParam(kBand4Bypass)->InitBool("Band 4: Bypass", true);
 
-  GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, 5);
+  GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, kNumModes);
   GetParam(kDistMode1)->SetDisplayText(0, "Soft");
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
@@ -92,7 +99,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode1)->SetDisplayText(5, "Tube");
 
-  GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, 5);
+  GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
   GetParam(kDistMode2)->SetDisplayText(0, "Soft");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
@@ -100,7 +107,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode2)->SetDisplayText(5, "Tube");
 
-  GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, 5);
+  GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
   GetParam(kDistMode3)->SetDisplayText(0, "Soft");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
@@ -108,7 +115,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode3)->SetDisplayText(5, "Tube");
 
-  GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, 5);
+  GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
   GetParam(kDistMode4)->SetDisplayText(0, "Soft");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
@@ -119,6 +126,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //Knobs/sliders
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
   IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
+  IBitmap bypassSmall = pGraphics->LoadIBitmap(BYPASSSMALL_ID, BYPASSSMALL_FN, 2);
 
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider));
@@ -138,16 +146,16 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText text = IText(14, &COLOR_WHITE, "Futura");
   
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+130, kMix1X+24, kDriveY+140), &text, "MIX"));
  
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+130, kDrive2X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+130, kDrive2X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix2X, kDriveY+130, kMix2X+24, kDriveY+140), &text, "MIX"));
  
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+130, kDrive3X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+130, kDrive3X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix3X, kDriveY+130, kMix3X+24, kDriveY+140), &text, "MIX"));
   
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+130, kMix4X+24, kDriveY+140), &text, "MIX"));
   
   IRECT modeRect1 = IRECT(kDrive1X, kDriveY+154, kDrive1X+59, kDriveY+171);
@@ -161,7 +169,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IRECT modeRect4 = IRECT(kDrive4X, kDriveY+154, kDrive4X+59, kDriveY+171);
   pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect4, DARK_GRAY, LIGHT_GRAY, kDistMode4));
-
+  
+  
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
   mOutputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
@@ -195,7 +204,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   pGraphics->AttachControl((IControl*)gFreqLines);
   
-  
+  pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
+
 
   
   //setting the min/max freq for fft display and freq lines
@@ -344,7 +354,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     }
   }
   
-  if (GetGUI()) {
+  if (GetGUI() && mSpectBypass) {
     const double sr = this->GetSampleRate();
     for (int c = 0; c < fftSize / 2 + 1; c++) {
       gAnalyzer->SendFFT(sFFT->GetOutput(c), c, sr);
@@ -452,6 +462,10 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       
     case kDistMode4:
       mDistMode4=GetParam(kDistMode4)->Value();
+      break;
+      
+    case kSpectBypass:
+      mSpectBypass=GetParam(kSpectBypass)->Value();
       break;
       
     default:

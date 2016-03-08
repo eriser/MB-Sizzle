@@ -60,6 +60,8 @@ private:
   bool mAutoGainComp;
   bool mOutputClipping;
   
+  bool mSpectBypass;
+  
   bool mBand1Bypass;
   bool mBand2Bypass;
   bool mBand3Bypass;
