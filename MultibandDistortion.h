@@ -51,6 +51,10 @@ private:
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);
   
+  RMSFollower mRMSDry[4];
+  RMSFollower mRMSWet[4];
+
+  
   RMSFollower* mRMSBand1Dry;
   RMSFollower* mRMSBand1Wet;
   RMSFollower* mRMSBand2Dry;
@@ -85,6 +89,13 @@ private:
   int mDistMode2;
   int mDistMode3;
   int mDistMode4;
+  
+  double mDrive[4];
+  double mMixe[4];
+  int mDistMode[4];
+  bool mMute[4];
+  bool mSolo[4];
+  bool mBypass[4];
   
   bool mAutoGainComp;
   bool mOutputClipping;

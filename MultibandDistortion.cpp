@@ -227,14 +227,14 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   mOutput4Smoother = new CParamSmooth(5.0, GetSampleRate());
   
   //Initialize RMS followers
-  mRMSBand1Dry= new RMSFollower(100,GetSampleRate());
-  mRMSBand1Wet= new RMSFollower(100,GetSampleRate());
-  mRMSBand2Dry= new RMSFollower(100,GetSampleRate());
-  mRMSBand2Wet= new RMSFollower(100,GetSampleRate());
-  mRMSBand3Dry= new RMSFollower(100,GetSampleRate());
-  mRMSBand3Wet= new RMSFollower(100,GetSampleRate());
-  mRMSBand4Dry= new RMSFollower(100,GetSampleRate());
-  mRMSBand4Wet= new RMSFollower(100,GetSampleRate());
+  mRMSBand1Dry= new RMSFollower();
+  mRMSBand1Wet= new RMSFollower();
+  mRMSBand2Dry= new RMSFollower();
+  mRMSBand2Wet= new RMSFollower();
+  mRMSBand3Dry= new RMSFollower();
+  mRMSBand3Wet= new RMSFollower();
+  mRMSBand4Dry= new RMSFollower();
+  mRMSBand4Wet= new RMSFollower();
   
   
   //IRECT For FFT Analyzer
@@ -380,35 +380,36 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
       double sample, sampleBand1, sampleBand2, sampleBand3, sampleBand4, rms1Dry, rms1Wet, rms2Dry, rms2Wet,rms3Dry, rms3Wet,rms4Dry, rms4Wet;
        sample = *input;
-      
+      double samplesFiltered[4];
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
       sample = ProcessDistortion(sample, 2);
 
       
-      sampleBand1 = sample;
-      sampleBand2 = sample;
-      sampleBand3 = sample;
-      sampleBand4 = sample;
+      samplesFiltered[0] = sample;
+      samplesFiltered[1] = sample;
+      samplesFiltered[2] = sample;
+      samplesFiltered[3] = sample;
       
-      rms1Dry =  mRMSBand1Dry->getRMS(sampleBand1);
-      rms2Dry =  mRMSBand1Dry->getRMS(sampleBand2);
-      rms3Dry =  mRMSBand1Dry->getRMS(sampleBand3);
-      rms4Dry =  mRMSBand1Dry->getRMS(sampleBand4);
+      if (mAutoGainComp) {
+        rms1Dry =  mRMSBand1Dry->getRMS(sampleBand1);
+        rms2Dry =  mRMSBand1Dry->getRMS(sampleBand2);
+        rms3Dry =  mRMSBand1Dry->getRMS(sampleBand3);
+        rms4Dry =  mRMSBand1Dry->getRMS(sampleBand4);
 
-      
+      }
       
       if (mSolo1) {
         
       }
       
       
-      
       if (mMute1) {
         sampleBand1=0;
       }
       else{
+        sampleBand1*=DBToAmp(mDrive1Smoother->process(sampleBand1));
         sampleBand1=ProcessDistortion(sampleBand1, mDistMode1);
       }
       
@@ -416,6 +417,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         sampleBand2=0;
       }
       else{
+        sampleBand2*= DBToAmp(mDrive1Smoother->process(sampleBand2));
         sampleBand2=ProcessDistortion(sampleBand2, mDistMode2);
       }
       
@@ -423,27 +425,32 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         sampleBand3=0;
       }
       else{
+        sampleBand3*=DBToAmp(mDrive1Smoother->process(sampleBand3));
         sampleBand3=ProcessDistortion(sampleBand3, mDistMode3);
       }
       
-      if (mMute3) {
-        sampleBand3=0;
+      if (mMute4) {
+        sampleBand4=0;
       }
       else{
-        sampleBand3=ProcessDistortion(sampleBand3, mDistMode3);
+        sampleBand4*=DBToAmp(mDrive1Smoother->process(sampleBand4));
+        sampleBand4=ProcessDistortion(sampleBand4, mDistMode4);
       }
       
-      
-      rms1Wet =  mRMSBand1Dry->getRMS(sampleBand1);
-      rms2Wet =  mRMSBand1Dry->getRMS(sampleBand2);
-      rms3Wet =  mRMSBand1Dry->getRMS(sampleBand3);
-      rms4Wet =  mRMSBand1Dry->getRMS(sampleBand4);
+      if (mAutoGainComp) {
+        rms1Wet =  mRMSBand1Dry->getRMS(sampleBand1);
+        rms2Wet =  mRMSBand1Dry->getRMS(sampleBand2);
+        rms3Wet =  mRMSBand1Dry->getRMS(sampleBand3);
+        rms4Wet =  mRMSBand1Dry->getRMS(sampleBand4);
+        
+        //Gain Compensation
+        sampleBand1*=rms1Dry/rms1Wet;
+        sampleBand2*=rms2Dry/rms2Wet;
+        sampleBand3*=rms3Dry/rms3Wet;
+        sampleBand4*=rms4Dry/rms4Wet;
+      }
 
-      //Gain Compensation
-      sampleBand1*=rms1Dry/rms1Wet;
-      sampleBand2*=rms2Dry/rms2Wet;
-      sampleBand3*=rms3Dry/rms3Wet;
-      sampleBand4*=rms4Dry/rms4Wet;
+      sample = (sampleBand1+sampleBand2+sampleBand3+sampleBand4)/4.;
 
       
       //Clipping
