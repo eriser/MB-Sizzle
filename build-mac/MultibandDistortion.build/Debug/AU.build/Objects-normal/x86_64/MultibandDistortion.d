@@ -33,4 +33,5 @@ dependencies: \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/denormal.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/fft.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/IPopupMenuControl.h \
+  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/RMS.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IPlug_include_in_plug_src.h

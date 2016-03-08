@@ -57,14 +57,19 @@ instrument determined by PLUG _IS _INST
 #define SLIDER_ID 101
 #define BYPASS_ID 102
 #define BYPASSSMALL_ID 103
+#define SOLO_ID 104
+#define MUTE_ID 105
 
 // Image resource locations for this plug.
 #define SLIDER_FN "resources/img/Slider.png"
 #define BYPASS_FN "resources/img/Bypass.png"
 #define BYPASSSMALL_FN "resources/img/BypassSmall.png"
+#define SOLO_FN "resources/img/Solo.png"
+#define MUTE_FN "resources/img/Mute.png"
+
 // GUI default dimensions
 #define GUI_WIDTH 460
-#define GUI_HEIGHT 370
+#define GUI_HEIGHT 375
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #if defined(SA_API) && !defined(OS_IOS)
