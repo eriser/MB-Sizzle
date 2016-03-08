@@ -1,4 +1,4 @@
-#define PLUG_MFR "michaeldonovan"
+#define PLUG_MFR "Michael Donovan"
 #define PLUG_NAME "MultibandDistortion"
 
 #define PLUG_CLASS_NAME MultibandDistortion
@@ -54,13 +54,14 @@ instrument determined by PLUG _IS _INST
 #define PLUG_DOES_STATE_CHUNKS 0
 
 // Unique IDs for each image resource.
-#define KNOB_ID 101
+#define SLIDER_ID 101
 
 // Image resource locations for this plug.
+#define SLIDER_FN "resources/img/Slider.png"
 
 // GUI default dimensions
-#define GUI_WIDTH 300
-#define GUI_HEIGHT 300
+#define GUI_WIDTH 600
+#define GUI_HEIGHT 320
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #if defined(SA_API) && !defined(OS_IOS)

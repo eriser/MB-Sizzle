@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultibandDistortion.cpp"
-            timestampString = "478481421.685862"
+            timestampString = "479088550.210465"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "27"
-            endingLineNumber = "27"
+            startingLineNumber = "49"
+            endingLineNumber = "49"
             landmarkName = "MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)"
             landmarkType = "5">
          </BreakpointContent>

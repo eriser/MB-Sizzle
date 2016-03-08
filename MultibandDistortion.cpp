@@ -10,6 +10,14 @@ enum EParams
   kDistType = 0,
   kNumPolynomials,
   kInputGain,
+  kDrive1,
+  kDrive2,
+  kDrive3,
+  kDrive4,
+  kMix1,
+  kMix2,
+  kMix3,
+  kMix4,
   kOutputGain,
   kAutoGainComp,
   kOutputClipping,
@@ -18,7 +26,21 @@ enum EParams
 
 enum ELayout
 {
-
+  kWidth = GUI_WIDTH,
+  kHeight = GUI_HEIGHT,
+  
+  kDriveY = 150,
+  kDrive1X = 75,
+  kDrive2X = kDrive1X+130,
+  kDrive3X = kDrive2X+130,
+  kDrive4X = kDrive3X+130,
+  
+  kMix1X = 110,
+  kMix2X = kMix1X+130,
+  kMix3X = kMix2X+130,
+  kMix4X = kMix3X+130,
+  
+  kSliderFrames=33
 };
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
@@ -26,7 +48,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 {
   TRACE;
   
-  channelCount=2;
+  IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
+  pGraphics->AttachPanelBackground(&LIGHT_GRAY);
   
   //Initialize Parameters
   //arguments are: name, defaultVal, minVal, maxVal, step, label
@@ -37,12 +60,71 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   
+  
+  //Knobs/sliders
+  IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
+  
+  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive3X, kDriveY, kDrive3, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive4X, kDriveY, kDrive4, &slider));
+
+  pGraphics->AttachControl(new IKnobMultiControl(this, kMix1X, kDriveY, kMix1, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kMix2X, kDriveY, kMix2, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
+  pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
+
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
   mOutputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
 
+  
+
+  
+  
+  //IRECT For FFT Analyzer
+  IRECT iView(40, 20, GUI_WIDTH-40, 20+100);
+  gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
+  pGraphics->AttachControl((IControl*)gAnalyzer);
+  gAnalyzer->SetdbFloor(-60.);
+  gAnalyzer->SetColors(LIGHT_ORANGE, DARK_ORANGE);
+  
+#ifdef OS_OSX
+  char* fontName = "Futura";
+  IText::EQuality texttype = IText::kQualityAntiAliased;
+#else
+  char* fontName = "Calibri";
+  IText::EQuality texttype = IText::EQuality::kQualityClearType;
+  
+#endif
+  
+  IText lFont(12, &COLOR_WHITE, fontName, IText::kStyleNormal, IText::kAlignCenter, 0, texttype);
+  // adding the vertical frequency lines
+  gFreqLines = new gFFTFreqDraw(this, iView, IColor(255,128,128,128), &lFont);
+  pGraphics->AttachControl((IControl*)gFreqLines);
+  
+  
+  
+  //setting the min/max freq for fft display and freq lines
+  const double maxF = 20000.;
+  const double minF = 20.;
+  gAnalyzer->SetMaxFreq(maxF);
+  gFreqLines->SetMaxFreq(maxF);
+  gAnalyzer->SetMinFreq(minF);
+  gFreqLines->SetMinFreq(minF);
+  //setting +3dB/octave compensation to the fft display
+  gAnalyzer->SetOctaveGain(3., true);
+  
+  AttachGraphics(pGraphics);
+
+  
   //MakePreset("preset 1", ... );
   MakeDefaultPreset((char *) "-", kNumPrograms);
+  
+  
+  //initializing FFT class
+  sFFT = new Spect_FFT(this, fftSize, 2);
+  sFFT->SetWindowType(Spect_FFT::win_BlackmanHarris);
 }
 
 MultibandDistortion::~MultibandDistortion() {}
@@ -114,8 +196,8 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         }
       }
       
-      //First 3 order chebyshev polynomials
-      else if (mDistType==5){
+      //First 5 order chebyshev polynomials
+      else if (mDistType==5||mDistType==6){
         //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
         
         double chebyshev[7];
@@ -166,7 +248,16 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       }
       
       
+      sFFT->SendInput(sample);
+      
       *output = sample;
+    }
+  }
+  
+  if (GetGUI()) {
+    const double sr = this->GetSampleRate();
+    for (int c = 0; c < fftSize / 2 + 1; c++) {
+      gAnalyzer->SendFFT(sFFT->GetOutput(c), c, sr);
     }
   }
 }
