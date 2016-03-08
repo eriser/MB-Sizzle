@@ -6,6 +6,7 @@
 #include "PeakFollower.h"
 #include "VAStateVariableFilter.h"
 #include "FFTRect.h"
+#include "IPopupMenuControl.h"
 
 class MultibandDistortion : public IPlug
 {
@@ -27,7 +28,7 @@ private:
   CParamSmooth* mOutputGainSmoother;
   
   //Set Colors
-  IColor DARK_GRAY = IColor(255,31,31,31);
+  IColor DARK_GRAY = IColor(255,50,50,50);
   IColor LIGHT_GRAY = IColor(255,70,70,70);
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);

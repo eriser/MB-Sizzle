@@ -224,7 +224,7 @@ class gFFTAnalyzer : public IControl
     {
     public:
         gFFTAnalyzer(IPlugBase* pPlug, IRECT pR, IColor c, int par, int sz, bool l)
-            : IControl(pPlug, pR), mColor(c), mParam(par), line(l)
+            : IControl(pPlug, pR), mColor(c), mColorBG(c), mParam(par), line(l)
         {
             mColor2 = IColor(100, mColor.R, mColor.G, mColor.B);
             fftBins = (double)sz; //total number of fft bins as double
@@ -279,6 +279,11 @@ class gFFTAnalyzer : public IControl
 
         bool Draw(IGraphics* pGraphics)
             {
+                
+            //Draw Background
+            IRECT FreqRect(mRECT.L, mRECT.T, mRECT.R, mRECT.B-20);
+            pGraphics->FillIRect(&mColorBG, &FreqRect);
+                
             double x, y, yPeak;
             double xPrev = mRECT.L;
             double yPrev = mRECT.B;
@@ -329,9 +334,10 @@ class gFFTAnalyzer : public IControl
             return true;
             }
 
-        void SetColors(IColor fill, IColor peakLine) {
+        void SetColors(IColor fill, IColor peakLine, IColor background) {
             mColor = peakLine;
             mColor2 = fill;
+            mColorBG = background;
         }
 
         bool IsDirty() { return true;}
@@ -356,7 +362,7 @@ class gFFTAnalyzer : public IControl
         double val, fftBins, sampleRate;
         int i, width;
         double decayValue, peakdecayValue;
-        IColor mColor, mColor2;
+        IColor mColor, mColor2, mColorBG;
         bool line;
         double minFreq, maxFreq;
         double dBFloor, ampFloor;
@@ -388,13 +394,11 @@ class gFFTAnalyzer : public IControl
   
         bool Draw(IGraphics* pGraphics)
         {
-            pGraphics->DrawVerticalLine(&mColor, mRECT.L, mRECT.B-20, mRECT.T);
-            pGraphics->DrawVerticalLine(&mColor, mRECT.R, mRECT.B-20, mRECT.T);
-            pGraphics->DrawLine(&mColor, mRECT.L, mRECT.B-20, mRECT.R, mRECT.B-20);
-            pGraphics->DrawLine(&mColor, mRECT.L, mRECT.T, mRECT.R, mRECT.T);
-
+            IRECT FreqRect = IRECT(mRECT.L, mRECT.T, mRECT.R, mRECT.B-20);
+            pGraphics->DrawRect(&mColor, &FreqRect);
+            
             for (int i = 0; i < HLineDraw.size() ; i++) {
-                pGraphics->DrawVerticalLine(&mColor, HLineDraw[i], mRECT.B - 20, mRECT.T);
+                pGraphics->DrawVerticalLine(&COLOR_WHITE, HLineDraw[i], mRECT.B - 20, mRECT.B-25);
             }
 
             for (int i = 0; i < FreqTxtDraw.size() ; i++) {
@@ -468,6 +472,7 @@ class gFFTAnalyzer : public IControl
         std::vector<int>HLineDraw;
         std::vector<txtLocation>FreqTxtDraw;
         IColor mColor;
+        IColor mColorBG;
         IText txt;
         int space;
         double minFreq, maxFreq;

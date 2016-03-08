@@ -495,6 +495,7 @@
 		4C0370D61C850B6D00C33BB8 /* VAStateVariableFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VAStateVariableFilter.cpp; sourceTree = "<group>"; };
 		4C0370D71C850B6D00C33BB8 /* VAStateVariableFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VAStateVariableFilter.h; sourceTree = "<group>"; };
 		4CB19A5B1C8E691400A12761 /* Bypass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Bypass.png; path = resources/img/Bypass.png; sourceTree = "<group>"; };
+		4CB19A711C8E7FB500A12761 /* IPopupMenuControl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPopupMenuControl.h; sourceTree = "<group>"; };
 		4CED85841C8E011500B832EF /* FFTRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FFTRect.h; sourceTree = "<group>"; };
 		4CED858D1C8E056C00B832EF /* denormal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = denormal.h; sourceTree = "<group>"; };
 		4CED858E1C8E056C00B832EF /* fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fft.c; sourceTree = "<group>"; };
@@ -868,6 +869,7 @@
 		4C0370CF1C850B3800C33BB8 /* Helpful Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				4CB19A711C8E7FB500A12761 /* IPopupMenuControl.h */,
 				4CED858D1C8E056C00B832EF /* denormal.h */,
 				4CED858E1C8E056C00B832EF /* fft.c */,
 				4CED858F1C8E056C00B832EF /* fft.h */,

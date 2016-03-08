@@ -25,6 +25,10 @@ enum EParams
   kBand3Bypass,
   kBand4Bypass,
   kOutputClipping,
+  kDistMode1,
+  kDistMode2,
+  kDistMode3,
+  kDistMode4,
   kNumParams
 };
 
@@ -34,15 +38,15 @@ enum ELayout
   kHeight = GUI_HEIGHT,
   
   kDriveY = 135,
-  kDrive1X = 75,
-  kDrive2X = kDrive1X+130,
-  kDrive3X = kDrive2X+130,
-  kDrive4X = kDrive3X+130,
+  kDrive1X = 50,
+  kDrive2X = kDrive1X+100,
+  kDrive3X = kDrive2X+100,
+  kDrive4X = kDrive3X+100,
   
-  kMix1X = 110,
-  kMix2X = kMix1X+130,
-  kMix3X = kMix2X+130,
-  kMix4X = kMix3X+130,
+  kMix1X = 85,
+  kMix2X = kMix1X+100,
+  kMix3X = kMix2X+100,
+  kMix4X = kMix3X+100,
   
   kSliderFrames=33
 };
@@ -69,7 +73,35 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kBand3Bypass)->InitBool("Band 3: Bypass", true);
   GetParam(kBand4Bypass)->InitBool("Band 4: Bypass", true);
 
+
+
+  GetParam(kDistMode1)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode1)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode1)->SetDisplayText(1, "Fat");
+  GetParam(kDistMode1)->SetDisplayText(2, "Sine");
+  GetParam(kDistMode1)->SetDisplayText(3, "Fold");
+  GetParam(kDistMode1)->SetDisplayText(4, "Tube");
+
+  GetParam(kDistMode2)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode2)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode2)->SetDisplayText(1, "Fat");
+  GetParam(kDistMode2)->SetDisplayText(2, "Sine");
+  GetParam(kDistMode2)->SetDisplayText(3, "Fold");
+  GetParam(kDistMode2)->SetDisplayText(4, "Tube");
   
+  GetParam(kDistMode3)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode3)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode3)->SetDisplayText(1, "Fat");
+  GetParam(kDistMode3)->SetDisplayText(2, "Sine");
+  GetParam(kDistMode3)->SetDisplayText(3, "Fold");
+  GetParam(kDistMode3)->SetDisplayText(4, "Tube");
+  
+  GetParam(kDistMode4)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode4)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode4)->SetDisplayText(1, "Fat");
+  GetParam(kDistMode4)->SetDisplayText(2, "Sine");
+  GetParam(kDistMode4)->SetDisplayText(3, "Fold");
+  GetParam(kDistMode4)->SetDisplayText(4, "Tube");
   
   //Knobs/sliders
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
@@ -85,12 +117,38 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
 
-  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive1X, kDriveY+138, kBand1Bypass, &bypass));
-  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive2X, kDriveY+138, kBand2Bypass, &bypass));
-  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive3X, kDriveY+138, kBand3Bypass, &bypass));
-  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive4X, kDriveY+138, kBand4Bypass, &bypass));
-
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive4X, kDriveY+180, kBand4Bypass, &bypass));
   
+  
+  IText text = IText(14, &COLOR_WHITE, "Futura");
+  
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+130, kMix1X+24, kDriveY+140), &text, "MIX"));
+ 
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+130, kDrive2X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix2X, kDriveY+130, kMix2X+24, kDriveY+140), &text, "MIX"));
+ 
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+130, kDrive3X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix3X, kDriveY+130, kMix3X+24, kDriveY+140), &text, "MIX"));
+  
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+130, kMix4X+24, kDriveY+140), &text, "MIX"));
+  
+  IRECT modeRect1 = IRECT(kDrive1X, kDriveY+154, kDrive1X+59, kDriveY+171);
+  pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect1, DARK_GRAY, LIGHT_GRAY, kDistMode1));
+  
+  IRECT modeRect2 = IRECT(kDrive2X, kDriveY+154, kDrive2X+59, kDriveY+171);
+  pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect2, DARK_GRAY, LIGHT_GRAY, kDistMode2));
+
+  IRECT modeRect3 = IRECT(kDrive3X, kDriveY+154, kDrive3X+59, kDriveY+171);
+  pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect3, DARK_GRAY, LIGHT_GRAY, kDistMode3));
+  
+  IRECT modeRect4 = IRECT(kDrive4X, kDriveY+154, kDrive4X+59, kDriveY+171);
+  pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect4, DARK_GRAY, LIGHT_GRAY, kDistMode4));
+
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
   mOutputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
@@ -101,11 +159,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   //IRECT For FFT Analyzer
   IRECT iView(40, 20, GUI_WIDTH-40, 20+100);
+  
+ 
   gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
   pGraphics->AttachControl((IControl*)gAnalyzer);
   gAnalyzer->SetdbFloor(-60.);
-  gAnalyzer->SetColors(LIGHT_ORANGE, DARK_ORANGE);
-  
+  gAnalyzer->SetColors(LIGHT_ORANGE, DARK_ORANGE, DARK_GRAY);
+
 #ifdef OS_OSX
   char* fontName = "Futura";
   IText::EQuality texttype = IText::kQualityAntiAliased;
@@ -117,10 +177,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText lFont(12, &COLOR_WHITE, fontName, IText::kStyleNormal, IText::kAlignCenter, 0, texttype);
   // adding the vertical frequency lines
-  gFreqLines = new gFFTFreqDraw(this, iView, IColor(255,128,128,128), &lFont);
+  gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
+
+  
   pGraphics->AttachControl((IControl*)gFreqLines);
   
   
+
   
   //setting the min/max freq for fft display and freq lines
   const double maxF = 20000.;
@@ -131,7 +194,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gFreqLines->SetMinFreq(minF);
   //setting +3dB/octave compensation to the fft display
   gAnalyzer->SetOctaveGain(3., true);
-  
+
   AttachGraphics(pGraphics);
 
   
@@ -142,6 +205,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //initializing FFT class
   sFFT = new Spect_FFT(this, fftSize, 2);
   sFFT->SetWindowType(Spect_FFT::win_BlackmanHarris);
+
 }
 
 MultibandDistortion::~MultibandDistortion() {}
@@ -229,8 +293,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
-      
-      sample = ProcessDistortion(sample, mDistType);
+      //sample = ProcessDistortion(sample, mDistType);
 
       //Apply output gainnd
       if (mAutoGainComp) {

@@ -62,8 +62,8 @@ instrument determined by PLUG _IS _INST
 #define BYPASS_FN "resources/img/Bypass.png"
 
 // GUI default dimensions
-#define GUI_WIDTH 600
-#define GUI_HEIGHT 320
+#define GUI_WIDTH 460
+#define GUI_HEIGHT 370
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #if defined(SA_API) && !defined(OS_IOS)
