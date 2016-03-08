@@ -29,9 +29,6 @@ dependencies: \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IPopupMenu.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IControl.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/CParamSmooth.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/PeakFollower.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/VAStateVariableFilter.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/DSPUtilities.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/FFTRect.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/denormal.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/fft.h \

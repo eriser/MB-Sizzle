@@ -3,8 +3,6 @@
 
 #include "IPlug_include_in_plug_hdr.h"
 #include "CParamSmooth.h"
-#include "PeakFollower.h"
-#include "VAStateVariableFilter.h"
 #include "FFTRect.h"
 #include "IPopupMenuControl.h"
 
@@ -54,6 +52,11 @@ private:
   int mDistType;
   int mPolynomials;
 
+  int mDistMode1;
+  int mDistMode2;
+  int mDistMode3;
+  int mDistMode4;
+  
   bool mAutoGainComp;
   bool mOutputClipping;
   

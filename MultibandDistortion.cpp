@@ -68,41 +68,54 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   
+  
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", 0., 0., 36., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", 0., 0., 36., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", 0., 0., 36., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", 0., 0., 36., 0.0001, "dB");
+
+  GetParam(kMix1)->InitDouble("Band 1: Mix", 0., 0., 36., 0.0001, "dB");
+  GetParam(kMix2)->InitDouble("Band 2: Mix", 0., 0., 36., 0.0001, "dB");
+  GetParam(kMix3)->InitDouble("Band 3: Mix", 0., 0., 36., 0.0001, "dB");
+  GetParam(kMix4)->InitDouble("Band 4: Mix", 0., 0., 36., 0.0001, "dB");
+
   GetParam(kBand1Bypass)->InitBool("Band 1: Bypass", true);
   GetParam(kBand2Bypass)->InitBool("Band 2: Bypass", true);
   GetParam(kBand3Bypass)->InitBool("Band 3: Bypass", true);
   GetParam(kBand4Bypass)->InitBool("Band 4: Bypass", true);
 
-
-
-  GetParam(kDistMode1)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, 5);
   GetParam(kDistMode1)->SetDisplayText(0, "Soft");
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode1)->SetDisplayText(4, "Tube");
+  GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode1)->SetDisplayText(5, "Tube");
 
-  GetParam(kDistMode2)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, 5);
   GetParam(kDistMode2)->SetDisplayText(0, "Soft");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode2)->SetDisplayText(4, "Tube");
-  
-  GetParam(kDistMode3)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode2)->SetDisplayText(5, "Tube");
+
+  GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, 5);
   GetParam(kDistMode3)->SetDisplayText(0, "Soft");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode3)->SetDisplayText(4, "Tube");
-  
-  GetParam(kDistMode4)->InitEnum("Mode", 0, 5);
+  GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode3)->SetDisplayText(5, "Tube");
+
+  GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, 5);
   GetParam(kDistMode4)->SetDisplayText(0, "Soft");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode4)->SetDisplayText(4, "Tube");
-  
+  GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode4)->SetDisplayText(5, "Tube");
+
   //Knobs/sliders
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
   IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
@@ -215,7 +228,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
 {
   //Soft asymmetrical clipping
   //algorithm by Bram de Jong, from musicdsp.org archives
-  if (distType==1) {
+  if (distType==0) {
     double threshold = 0.9;
     
     if(sample>threshold)
@@ -225,14 +238,14 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   }
   
   //arctan waveshaper
-  else if(distType==2){
+  else if(distType==1){
     double amount = 3;
     sample =  fastAtan(sample * amount);
   }
   
   //Sine shaper
   //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
-  else if(distType==3){
+  else if(distType==2){
     double amount = 1.6;
     double z = M_PI * amount/4.0;
     double s = 1/sin(z);
@@ -250,7 +263,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   
   //Foldback Distortion
   //algorithm by hellfire@upb.de, from musicdsp.org archives
-  else if(distType==4){
+  else if(distType==3){
     double threshold = .9;
     if (sample > threshold || sample < - threshold) {
       sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
@@ -258,7 +271,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   }
   
   //First 5 order chebyshev polynomials
-  else if (distType==5){
+  else if (distType==4){
     //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
     
     double chebyshev[7];
@@ -271,6 +284,14 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
       sample+=chebyshev[i];
       sample*=.5;
     }
+  }
+  
+  //tube emulation
+  else if (distType==5){
+    sample = sin(sample) + pow(abs(sin(sample)), 2) - .1;
+    sample = sin(sample) + pow(abs(sin(sample)), 4) - .1;
+    sample = sin(sample) + pow(abs(sin(sample)), 8) - .1;
+
   }
   return sample;
 }
@@ -293,14 +314,16 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
-      //sample = ProcessDistortion(sample, mDistType);
+      sample = ProcessDistortion(sample, 2);
 
-      //Apply output gainnd
+      
+      
+      //Apply output gain
       if (mAutoGainComp) {
-        sample *= DBToAmp(mOutputGainSmoother->process(-1*mInputGain));
+        //sample *= DBToAmp(mOutputGainSmoother->process(-1*mDrive1));
       }
       else{
-        sample *= DBToAmp(mOutputGainSmoother->process(mOutputGain));
+        //sample *= DBToAmp(mOutputGainSmoother->process(mDrive1));
       }
       
       
@@ -413,6 +436,22 @@ void MultibandDistortion::OnParamChange(int paramIdx)
      
     case kBand4Bypass:
       mBand4Bypass=GetParam(kBand4Bypass)->Value();
+      break;
+      
+    case kDistMode1:
+      mDistMode1=GetParam(kDistMode1)->Value();
+      break;
+      
+    case kDistMode2:
+      mDistMode2=GetParam(kDistMode2)->Value();
+      break;
+    
+    case kDistMode3:
+      mDistMode3=GetParam(kDistMode3)->Value();
+      break;
+      
+    case kDistMode4:
+      mDistMode4=GetParam(kDistMode4)->Value();
       break;
       
     default:

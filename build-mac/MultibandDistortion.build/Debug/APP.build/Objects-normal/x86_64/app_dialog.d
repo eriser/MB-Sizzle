@@ -36,9 +36,6 @@ dependencies: \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IPopupMenu.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IControl.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../CParamSmooth.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../PeakFollower.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../VAStateVariableFilter.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../DSPUtilities.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../FFTRect.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../denormal.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../fft.h \

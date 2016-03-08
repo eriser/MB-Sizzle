@@ -64,6 +64,8 @@
 		4CB19A5F1C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
 		4CB19A601C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
 		4CB19A611C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
+		4CB19A771C8E992100A12761 /* ICrossoverControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CB19A761C8E992100A12761 /* ICrossoverControl.h */; };
+		4CB19A781C8E992100A12761 /* ICrossoverControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CB19A761C8E992100A12761 /* ICrossoverControl.h */; };
 		4CED85851C8E011500B832EF /* FFTRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED85841C8E011500B832EF /* FFTRect.h */; };
 		4CED85861C8E011500B832EF /* FFTRect.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED85841C8E011500B832EF /* FFTRect.h */; };
 		4CED85901C8E056C00B832EF /* denormal.h in Headers */ = {isa = PBXBuildFile; fileRef = 4CED858D1C8E056C00B832EF /* denormal.h */; };
@@ -496,6 +498,7 @@
 		4C0370D71C850B6D00C33BB8 /* VAStateVariableFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VAStateVariableFilter.h; sourceTree = "<group>"; };
 		4CB19A5B1C8E691400A12761 /* Bypass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Bypass.png; path = resources/img/Bypass.png; sourceTree = "<group>"; };
 		4CB19A711C8E7FB500A12761 /* IPopupMenuControl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPopupMenuControl.h; sourceTree = "<group>"; };
+		4CB19A761C8E992100A12761 /* ICrossoverControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ICrossoverControl.h; sourceTree = "<group>"; };
 		4CED85841C8E011500B832EF /* FFTRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FFTRect.h; sourceTree = "<group>"; };
 		4CED858D1C8E056C00B832EF /* denormal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = denormal.h; sourceTree = "<group>"; };
 		4CED858E1C8E056C00B832EF /* fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fft.c; sourceTree = "<group>"; };
@@ -796,6 +799,7 @@
 				52FBBED30D0CF143001C8B8A /* resource.h */,
 				52FBBED20D0CF13D001C8B8A /* MultibandDistortion.h */,
 				52FBBED00D0CF139001C8B8A /* MultibandDistortion.cpp */,
+				4CB19A761C8E992100A12761 /* ICrossoverControl.h */,
 				4C0370CF1C850B3800C33BB8 /* Helpful Utilities */,
 				089C167CFE841241C02AAC07 /* Resources */,
 				32C88E010371C26100C91783 /* Other Sources */,
@@ -1453,6 +1457,7 @@
 				4F78D95B13B63BA50032E0F3 /* IParam.h in Headers */,
 				4F78D95D13B63BA50032E0F3 /* IMidiQueue.h in Headers */,
 				4F78D95F13B63BA50032E0F3 /* IGraphicsCarbon.h in Headers */,
+				4CB19A781C8E992100A12761 /* ICrossoverControl.h in Headers */,
 				4F78D96013B63BA50032E0F3 /* IGraphics.h in Headers */,
 				4C0370F71C850B6D00C33BB8 /* VAStateVariableFilter.h in Headers */,
 				4F78DA0713B63CD90032E0F3 /* IPlugAU.h in Headers */,
@@ -1512,6 +1517,7 @@
 				4F78DAA613B640050032E0F3 /* IGraphics.h in Headers */,
 				4F3EE94613B65A350097B791 /* IPlugOSDetect.h in Headers */,
 				4FDA440F13F3E4F2000B4551 /* IBitmapMonoText.h in Headers */,
+				4CB19A771C8E992100A12761 /* ICrossoverControl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
