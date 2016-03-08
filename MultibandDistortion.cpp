@@ -133,6 +133,70 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 MultibandDistortion::~MultibandDistortion() {}
 
 
+double MultibandDistortion::ProcessDistortion(double sample, int distType)
+{
+  //Soft asymmetrical clipping
+  //algorithm by Bram de Jong, from musicdsp.org archives
+  if (distType==1) {
+    double threshold = 0.9;
+    
+    if(sample>threshold)
+      sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
+    else if(sample >1)
+      sample = (sample + 1)/2;
+  }
+  
+  //arctan waveshaper
+  else if(distType==2){
+    double amount = 3;
+    sample =  fastAtan(sample * amount);
+  }
+  
+  //Sine shaper
+  //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
+  else if(distType==3){
+    double amount = 1.6;
+    double z = M_PI * amount/4.0;
+    double s = 1/sin(z);
+    double b = 1 / amount;
+    
+    if (sample>b)
+      sample = sample + (1-sample)*0.8;
+    else if (sample < - b)
+      sample = sample + (-1-sample)*0.8;
+    else
+      sample = sin(z * sample) * s;
+    
+    sample *= pow(10, -amount/20.0);
+  }
+  
+  //Foldback Distortion
+  //algorithm by hellfire@upb.de, from musicdsp.org archives
+  else if(distType==4){
+    double threshold = .9;
+    if (sample > threshold || sample < - threshold) {
+      sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
+    }
+  }
+  
+  //First 5 order chebyshev polynomials
+  else if (distType==5){
+    //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
+    
+    double chebyshev[7];
+    chebyshev[0] = sample;
+    chebyshev[1] = 2 * sample * sample - 1;
+    chebyshev[2] = 4 * pow(sample, 3) - 3 * sample;
+    chebyshev[3] = 8 * pow(sample, 4) - 8 * sample * sample + 1;
+    chebyshev[4] = 16 * pow(sample, 5) - 20 * pow(sample,3) - 7 * sample;
+    for(int i=1; i<mPolynomials; i++){
+      sample+=chebyshev[i];
+      sample*=.5;
+    }
+  }
+  return sample;
+}
+
 /**
  This is the main loop where we'll process our samples
  */
@@ -151,86 +215,9 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
-      /////////////////////////////////////////////////////////////////////
-      //Apply distortion
- 
       
-      //Soft asymmetrical clipping
-      //algorithm by Bram de Jong, from musicdsp.org archives
-      if (mDistType==1) {
-        double threshold = 0.9;
-        
-        if(sample>threshold)
-          sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
-        else if(sample >1)
-          sample = (sample + 1)/2;
-      }
-      
-      //arctan waveshaper
-      else if(mDistType==2){
-        double amount = 3;
-        sample =  fastAtan(sample * amount);
-      }
-      
-      //Sine shaper
-      //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
-      else if(mDistType==3){
-        double amount = 1.6;
-        double z = M_PI * amount/4.0;
-        double s = 1/sin(z);
-        double b = 1 / amount;
-        
-        if (sample>b)
-          sample = sample + (1-sample)*0.8;
-        else if (sample < - b)
-          sample = sample + (-1-sample)*0.8;
-        else
-          sample = sin(z * sample) * s;
-        
-        sample *= pow(10, -amount/20.0);
-      }
-      
-      //Foldback Distortion
-      //algorithm by hellfire@upb.de, from musicdsp.org archives
-      else if(mDistType==4){
-        double threshold = .9;
-        if (sample > threshold || sample < - threshold) {
-          sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
-        }
-      }
-      
-      //First 5 order chebyshev polynomials
-      else if (mDistType==5||mDistType==6){
-        //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
-        
-        double chebyshev[7];
-        chebyshev[0] = sample;
-        chebyshev[1] = 2 * sample * sample - 1;
-        chebyshev[2] = 4 * pow(sample, 3) - 3 * sample;
-        chebyshev[3] = 8 * pow(sample, 4) - 8 * sample * sample + 1;
-        chebyshev[4] = 16 * pow(sample, 5) - 20 * pow(sample,3) - 7 * sample;
-        for(int i=1; i<mPolynomials; i++){
-          sample+=chebyshev[i];
-          sample*=.5;
-        }
-      }
-      
-      else if (mDistType==6){
-        
-      }
-      
-      else if (mDistType==7){
-        
-      }
-      
-      else if (mDistType==8){
-        
-      }
-      
-      //End distortion block
-      /////////////////////////////////////////////////////////////////////
-      
-      
+      sample = ProcessDistortion(sample, mDistType);
+
       //Apply output gain
       if (mAutoGainComp) {
         sample *= DBToAmp(mOutputGainSmoother->process(-1*mInputGain));
@@ -270,6 +257,7 @@ void MultibandDistortion::Reset()
   TRACE;
   IMutexLock lock(this);
 }
+
 
 
 void MultibandDistortion::OnParamChange(int paramIdx)

@@ -17,6 +17,8 @@ public:
   void OnParamChange(int paramIdx);
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
   double fastAtan(double x);
+  double ProcessDistortion(double sample, int distType);
+
 private:
   Spect_FFT* sFFT;
   gFFTAnalyzer* gAnalyzer;
