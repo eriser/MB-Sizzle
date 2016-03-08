@@ -56,8 +56,11 @@ private:
   bool mAutoGainComp;
   bool mOutputClipping;
   
+  bool mBand1Bypass;
+  bool mBand2Bypass;
+  bool mBand3Bypass;
+  bool mBand4Bypass;
 
-  
 };
 
 #endif

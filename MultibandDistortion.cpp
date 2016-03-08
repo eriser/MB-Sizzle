@@ -20,6 +20,10 @@ enum EParams
   kMix4,
   kOutputGain,
   kAutoGainComp,
+  kBand1Bypass,
+  kBand2Bypass,
+  kBand3Bypass,
+  kBand4Bypass,
   kOutputClipping,
   kNumParams
 };
@@ -29,7 +33,7 @@ enum ELayout
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
   
-  kDriveY = 150,
+  kDriveY = 135,
   kDrive1X = 75,
   kDrive2X = kDrive1X+130,
   kDrive3X = kDrive2X+130,
@@ -60,10 +64,17 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   
+  GetParam(kBand1Bypass)->InitBool("Band 1: Bypass", true);
+  GetParam(kBand2Bypass)->InitBool("Band 2: Bypass", true);
+  GetParam(kBand3Bypass)->InitBool("Band 3: Bypass", true);
+  GetParam(kBand4Bypass)->InitBool("Band 4: Bypass", true);
+
+  
   
   //Knobs/sliders
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
-  
+  IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
+
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive3X, kDriveY, kDrive3, &slider));
@@ -74,8 +85,11 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
 
-  
-  
+  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive1X, kDriveY+138, kBand1Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive2X, kDriveY+138, kBand2Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive3X, kDriveY+138, kBand3Bypass, &bypass));
+  pGraphics->AttachControl(new ISwitchFramesControl(this, kDrive4X, kDriveY+138, kBand4Bypass, &bypass));
+
   
   //Initialize Parameter Smoothers
   mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
@@ -218,7 +232,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       
       sample = ProcessDistortion(sample, mDistType);
 
-      //Apply output gain
+      //Apply output gainnd
       if (mAutoGainComp) {
         sample *= DBToAmp(mOutputGainSmoother->process(-1*mInputGain));
       }
@@ -295,7 +309,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
 
     case kDrive2:
-      
+      mDrive2=GetParam(kDrive2)->Value();
       break;
       
     case kDrive3:
@@ -320,6 +334,22 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       
     case kMix4:
       mMix4=GetParam(kMix4)->Value();
+      break;
+      
+    case kBand1Bypass:
+      mBand1Bypass=GetParam(kBand1Bypass)->Value();
+      break;
+      
+    case kBand2Bypass:
+      mBand2Bypass=GetParam(kBand2Bypass)->Value();
+      break;
+      
+    case kBand3Bypass:
+      mBand3Bypass=GetParam(kBand3Bypass)->Value();
+      break;
+     
+    case kBand4Bypass:
+      mBand4Bypass=GetParam(kBand4Bypass)->Value();
       break;
       
     default:
