@@ -26,6 +26,9 @@ private:
   CParamSmooth* mInputGainSmoother;
   CParamSmooth* mOutputGainSmoother;
   
+  CParamSmooth** mDriveSmoother;
+  CParamSmooth** mOutputSmoother;
+  
   CParamSmooth* mDrive1Smoother;
   CParamSmooth* mOutput1Smoother;
   CParamSmooth* mDrive2Smoother;
@@ -51,33 +54,17 @@ private:
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);
   
-  RMSFollower mRMSDry[4];
-  RMSFollower mRMSWet[4];
+  //RMSFollower** mRMSDry;
+  //RMSFollower** mRMSWet;
 
   
-  RMSFollower* mRMSBand1Dry;
-  RMSFollower* mRMSBand1Wet;
-  RMSFollower* mRMSBand2Dry;
-  RMSFollower* mRMSBand2Wet;
-  RMSFollower* mRMSBand3Dry;
-  RMSFollower* mRMSBand3Wet;
-  RMSFollower* mRMSBand4Dry;
-  RMSFollower* mRMSBand4Wet;
-  
+  double samplesFilteredDry[4];
+  double samplesFilteredWet[4];
   double chebyshev[8];
   double mInputGain;
   double mOutputGain;
-  
-  double mDrive1;
-  double mDrive2;
-  double mDrive3;
-  double mDrive4;
-  
-  double mMix1;
-  double mMix2;
-  double mMix3;
-  double mMix4;
-  
+  double sample, RMSDry, RMSWet;
+
   
   const int fftSize=4096;
   const int channelCount = 2;
@@ -85,13 +72,8 @@ private:
   int mDistType;
   int mPolynomials;
 
-  int mDistMode1;
-  int mDistMode2;
-  int mDistMode3;
-  int mDistMode4;
-  
   double mDrive[4];
-  double mMixe[4];
+  double mMix[4];
   int mDistMode[4];
   bool mMute[4];
   bool mSolo[4];
@@ -101,22 +83,6 @@ private:
   bool mOutputClipping;
   
   bool mSpectBypass;
-  
-  bool mBand1Bypass;
-  bool mBand2Bypass;
-  bool mBand3Bypass;
-  bool mBand4Bypass;
-  
-  
-  bool mSolo1;
-  bool mSolo2;
-  bool mSolo3;
-  bool mSolo4;
-
-  bool mMute1;
-  bool mMute2;
-  bool mMute3;
-  bool mMute4;
 
 };
 

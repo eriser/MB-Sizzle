@@ -46,7 +46,7 @@ enum ELayout
   kWidth = GUI_WIDTH,
   kHeight = GUI_HEIGHT,
   
-  kNumModes,
+  kNumModes=6,
   
   kDriveY = 135,
   kDrive1X = 50,
@@ -79,15 +79,15 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
-  GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", true);
+  GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", false);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   
   
-  GetParam(kDrive1)->InitDouble("Band 1: Drive", 0., 0., 36., 0.0001, "dB");
-  GetParam(kDrive2)->InitDouble("Band 2: Drive", 0., 0., 36., 0.0001, "dB");
-  GetParam(kDrive3)->InitDouble("Band 3: Drive", 0., 0., 36., 0.0001, "dB");
-  GetParam(kDrive4)->InitDouble("Band 4: Drive", 0., 0., 36., 0.0001, "dB");
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", 0., 0., 10., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", 0., 0., 10., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", 0., 0., 10., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", 0., 0., 10., 0.0001, "dB");
 
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
@@ -108,7 +108,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMute2)->InitBool("Band 2: Mute", false);
   GetParam(kMute3)->InitBool("Band 3: Mute", false);
   GetParam(kMute4)->InitBool("Band 4: Mute", false);
-
+  
   
   GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, kNumModes);
   GetParam(kDistMode1)->SetDisplayText(0, "Soft");
@@ -214,27 +214,20 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->DrawVerticalLine(&DARK_GRAY, kDrive2X-20, kDriveY, kDriveY+40);
   
   
-  //Initialize Parameter Smoothers
-  mInputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
-  mOutputGainSmoother = new CParamSmooth(5.0, GetSampleRate());
-  mDrive1Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mOutput1Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mDrive2Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mOutput2Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mDrive3Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mOutput3Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mDrive4Smoother = new CParamSmooth(5.0, GetSampleRate());
-  mOutput4Smoother = new CParamSmooth(5.0, GetSampleRate());
-  
-  //Initialize RMS followers
-  mRMSBand1Dry= new RMSFollower();
-  mRMSBand1Wet= new RMSFollower();
-  mRMSBand2Dry= new RMSFollower();
-  mRMSBand2Wet= new RMSFollower();
-  mRMSBand3Dry= new RMSFollower();
-  mRMSBand3Wet= new RMSFollower();
-  mRMSBand4Dry= new RMSFollower();
-  mRMSBand4Wet= new RMSFollower();
+  //Initialize Parameter Smoothers + RMS Level Followers
+  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
+  mDriveSmoother= new CParamSmooth*[4];
+  mOutputSmoother= new CParamSmooth*[4];
+  //mRMSDry= new RMSFollower*[4];
+  //mRMSWet= new RMSFollower*[4];
+
+  for (int i=0; i<4; i++) {
+    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    //mRMSDry[i]=new RMSFollower();
+    //mRMSWet[i]=new RMSFollower;
+  }
+
   
   
   //IRECT For FFT Analyzer
@@ -308,8 +301,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   
   //arctan waveshaper
   else if(distType==1){
-    double amount = 3;
-    sample =  fastAtan(sample * amount);
+    sample =  fastAtan(sample * 3);
   }
   
   //Sine shaper
@@ -378,80 +370,54 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     double* output = outputs[i];
     
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
-      double sample, sampleBand1, sampleBand2, sampleBand3, sampleBand4, rms1Dry, rms1Wet, rms2Dry, rms2Wet,rms3Dry, rms3Wet,rms4Dry, rms4Wet;
        sample = *input;
-      double samplesFiltered[4];
+
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
       sample = ProcessDistortion(sample, 2);
 
+    
+      //Loop through bands, process samples
+      for (int j=0; j<4; j++) {
+        samplesFilteredDry[j]=sample;
+        samplesFilteredWet[j]=sample;
+        if (mMute[j]) {
+          samplesFilteredWet[j]=0;
+        }
+        else {
+          if (mBypass[j]) {
+            if (mAutoGainComp) {
+              //RMSDry=mRMSDry[j]->getRMS(samplesFiltered[j]);
+            }
+            
+            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
+            samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
+            
+            //Mix
+            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+            
+            if (mAutoGainComp) {
+              //RMSWet=mRMSWet[j]->getRMS(samplesFiltered[j]);
+             // samplesFiltered[j]*=RMSDry/RMSWet;
+            }
+          }
+        }
+      }
+  
       
-      samplesFiltered[0] = sample;
-      samplesFiltered[1] = sample;
-      samplesFiltered[2] = sample;
-      samplesFiltered[3] = sample;
-      
-      if (mAutoGainComp) {
-        rms1Dry =  mRMSBand1Dry->getRMS(sampleBand1);
-        rms2Dry =  mRMSBand1Dry->getRMS(sampleBand2);
-        rms3Dry =  mRMSBand1Dry->getRMS(sampleBand3);
-        rms4Dry =  mRMSBand1Dry->getRMS(sampleBand4);
-
+      //Sum output
+      sample=0;
+      for(int j=0; j<4; j++){
+        if (mSolo[j]) {
+          sample=samplesFilteredWet[j];
+          break;
+        }
+        else{
+          sample+=samplesFilteredWet[j];
+        }
       }
-      
-      if (mSolo1) {
-        
-      }
-      
-      
-      if (mMute1) {
-        sampleBand1=0;
-      }
-      else{
-        sampleBand1*=DBToAmp(mDrive1Smoother->process(sampleBand1));
-        sampleBand1=ProcessDistortion(sampleBand1, mDistMode1);
-      }
-      
-      if (mMute2) {
-        sampleBand2=0;
-      }
-      else{
-        sampleBand2*= DBToAmp(mDrive1Smoother->process(sampleBand2));
-        sampleBand2=ProcessDistortion(sampleBand2, mDistMode2);
-      }
-      
-      if (mMute3) {
-        sampleBand3=0;
-      }
-      else{
-        sampleBand3*=DBToAmp(mDrive1Smoother->process(sampleBand3));
-        sampleBand3=ProcessDistortion(sampleBand3, mDistMode3);
-      }
-      
-      if (mMute4) {
-        sampleBand4=0;
-      }
-      else{
-        sampleBand4*=DBToAmp(mDrive1Smoother->process(sampleBand4));
-        sampleBand4=ProcessDistortion(sampleBand4, mDistMode4);
-      }
-      
-      if (mAutoGainComp) {
-        rms1Wet =  mRMSBand1Dry->getRMS(sampleBand1);
-        rms2Wet =  mRMSBand1Dry->getRMS(sampleBand2);
-        rms3Wet =  mRMSBand1Dry->getRMS(sampleBand3);
-        rms4Wet =  mRMSBand1Dry->getRMS(sampleBand4);
-        
-        //Gain Compensation
-        sampleBand1*=rms1Dry/rms1Wet;
-        sampleBand2*=rms2Dry/rms2Wet;
-        sampleBand3*=rms3Dry/rms3Wet;
-        sampleBand4*=rms4Dry/rms4Wet;
-      }
-
-      sample = (sampleBand1+sampleBand2+sampleBand3+sampleBand4)/4.;
-
+      //sample /= 4;
       
       //Clipping
       if(mOutputClipping){
@@ -517,67 +483,67 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kDrive1:
-      mDrive1=GetParam(kDrive1)->Value();
+      mDrive[0]=GetParam(kDrive1)->Value();
       break;
 
     case kDrive2:
-      mDrive2=GetParam(kDrive2)->Value();
+      mDrive[1]=GetParam(kDrive2)->Value();
       break;
       
     case kDrive3:
-      mDrive3=GetParam(kDrive3)->Value();
+      mDrive[2]=GetParam(kDrive3)->Value();
       break;
       
     case kDrive4:
-      mDrive4=GetParam(kDrive4)->Value();
+      mDrive[3]=GetParam(kDrive4)->Value();
       break;
       
     case kMix1:
-      mMix1=GetParam(kMix1)->Value();
+      mMix[0]=GetParam(kMix1)->Value()/100.;
       break;
 
     case kMix2:
-      mMix2=GetParam(kMix2)->Value();
+      mMix[1]=GetParam(kMix2)->Value()/100.;
       break;
       
     case kMix3:
-      mMix3=GetParam(kMix3)->Value();
+      mMix[2]=GetParam(kMix3)->Value()/100.;
       break;
       
     case kMix4:
-      mMix4=GetParam(kMix4)->Value();
+      mMix[3]=GetParam(kMix4)->Value()/ 100.;
       break;
       
     case kBand1Bypass:
-      mBand1Bypass=GetParam(kBand1Bypass)->Value();
+      mBypass[0]=GetParam(kBand1Bypass)->Value();
       break;
       
     case kBand2Bypass:
-      mBand2Bypass=GetParam(kBand2Bypass)->Value();
+      mBypass[1]=GetParam(kBand2Bypass)->Value();
       break;
       
     case kBand3Bypass:
-      mBand3Bypass=GetParam(kBand3Bypass)->Value();
+      mBypass[2]=GetParam(kBand3Bypass)->Value();
       break;
      
     case kBand4Bypass:
-      mBand4Bypass=GetParam(kBand4Bypass)->Value();
+      mBypass[3]=GetParam(kBand4Bypass)->Value();
       break;
       
     case kDistMode1:
-      mDistMode1=GetParam(kDistMode1)->Value();
+      mDistMode[0]=GetParam(kDistMode1)->Value();
       break;
       
     case kDistMode2:
-      mDistMode2=GetParam(kDistMode2)->Value();
+      mDistMode[1]=GetParam(kDistMode2)->Value();
       break;
     
     case kDistMode3:
-      mDistMode3=GetParam(kDistMode3)->Value();
+      mDistMode[2]=GetParam(kDistMode3)->Value();
       break;
       
     case kDistMode4:
-      mDistMode4=GetParam(kDistMode4)->Value();
+      mDistMode[3]=GetParam(kDistMode4)->Value();
       break;
       
     case kSpectBypass:
@@ -585,8 +551,8 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kSolo1:
-      mSolo1=GetParam(kSolo1)->Value();
-      if(mSolo1){
+      mSolo[0]=GetParam(kSolo1)->Value();
+      if(mSolo[0]){
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -596,8 +562,8 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kSolo2:
-      mSolo2=GetParam(kSolo2)->Value();
-      if(mSolo2){
+      mSolo[1]=GetParam(kSolo2)->Value();
+      if(mSolo[1]){
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -607,8 +573,8 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kSolo3:
-      mSolo3=GetParam(kSolo3)->Value();
-      if(mSolo3){
+      mSolo[2]=GetParam(kSolo3)->Value();
+      if(mSolo[2]){
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -618,8 +584,8 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kSolo4:
-      mSolo4=GetParam(kSolo4)->Value();
-      if(mSolo4){
+      mSolo[3]=GetParam(kSolo4)->Value();
+      if(mSolo[3]){
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
@@ -629,19 +595,19 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kMute1:
-      mMute1=GetParam(kMute1)->Value();
+      mMute[0]=GetParam(kMute1)->Value();
       break;
       
     case kMute2:
-      mMute2=GetParam(kMute2)->Value();
+      mMute[1]=GetParam(kMute2)->Value();
       break;
       
     case kMute3:
-      mMute3=GetParam(kMute3)->Value();
+      mMute[2]=GetParam(kMute3)->Value();
       break;
       
     case kMute4:
-      mMute4=GetParam(kMute4)->Value();
+      mMute[3]=GetParam(kMute4)->Value();
       break;
       
     default:
