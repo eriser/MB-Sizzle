@@ -71,27 +71,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 {
   TRACE;
   
-  //Initialize Parameter Smoothers + RMS Level Followers
-  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
-  mDriveSmoother= new CParamSmooth*[4];
-  mOutputSmoother= new CParamSmooth*[4];
-  mMixSmoother= new CParamSmooth*[4];
-  mRMSDry= new RMSFollower*[4];
-  mRMSWet= new RMSFollower*[4];
+  IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
+  pGraphics->AttachPanelBackground(&LIGHT_GRAY);
   
-  for (int i=0; i<4; i++) {
-    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mRMSDry[i]=new RMSFollower();
-    mRMSWet[i]=new RMSFollower;
-  }
-  
-  //Initialize Filter Bank
-  filterBank = new MBProcessing();
-  filterBank->initMB(GetSampleRate(), 255., 4);
-  
-  //Initialize Parameters=================================================================================
+  //Initialize Parameters
   //arguments are: name, defaultVal, minVal, maxVal, step, label
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
   GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
@@ -106,7 +89,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDrive2)->InitDouble("Band 2: Drive", 0., 0., 10., 0.0001, "dB");
   GetParam(kDrive3)->InitDouble("Band 3: Drive", 0., 0., 10., 0.0001, "dB");
   GetParam(kDrive4)->InitDouble("Band 4: Drive", 0., 0., 10., 0.0001, "dB");
-  
+
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix3)->InitDouble("Band 3: Mix", 100., 0., 100., 0.001, "%");
@@ -115,13 +98,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMix2)->SetShape(2.);
   GetParam(kMix3)->SetShape(2.);
   GetParam(kMix4)->SetShape(2.);
-  
+
   
   GetParam(kBand1Enable)->InitBool("Band 1: Enable", true);
   GetParam(kBand2Enable)->InitBool("Band 2: Enable", true);
   GetParam(kBand3Enable)->InitBool("Band 3: Enable", true);
   GetParam(kBand4Enable)->InitBool("Band 4: Enable", true);
-  
+
   GetParam(kSolo1)->InitBool("Band 1: Solo", false);
   GetParam(kSolo2)->InitBool("Band 2: Solo", false);
   GetParam(kSolo3)->InitBool("Band 3: Solo", false);
@@ -140,7 +123,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
   GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode1)->SetDisplayText(5, "Tube");
-  
+
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
   GetParam(kDistMode2)->SetDisplayText(0, "Soft");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
@@ -148,7 +131,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
   GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode2)->SetDisplayText(5, "Tube");
-  
+
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
   GetParam(kDistMode3)->SetDisplayText(0, "Soft");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
@@ -156,7 +139,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
   GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode3)->SetDisplayText(5, "Tube");
-  
+
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
   GetParam(kDistMode4)->SetDisplayText(0, "Soft");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
@@ -165,14 +148,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode4)->SetDisplayText(5, "Tube");
 
-  
-  //===================================================================================================
-  //  Create Graphics
-  
-  IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
-  pGraphics->AttachPanelBackground(&LIGHT_GRAY);
-  
-  
   //Knobs/sliders
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
   IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
@@ -220,8 +195,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText text = IText(14, &COLOR_WHITE, "Futura");
   
-  
-  //sliders
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+130, kMix1X+24, kDriveY+140), &text, "MIX"));
  
@@ -234,8 +207,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+130, kMix4X+24, kDriveY+140), &text, "MIX"));
   
-  
-  //Mode selector menus
   IRECT modeRect1 = IRECT(kDrive1X, kDriveY+154, kDrive1X+59, kDriveY+171);
   pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect1, DARK_GRAY, LIGHT_GRAY, kDistMode1));
   
@@ -251,9 +222,29 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   mDistMode4 = new IPopUpMenuControl(this, modeRect4, DARK_GRAY, LIGHT_GRAY, kDistMode4);
   pGraphics->AttachControl(mDistMode4);
   
+  //Vertical lines
+  pGraphics->DrawVerticalLine(&DARK_GRAY, kDrive2X-20, kDriveY, kDriveY+40);
   
-  //=======================================================================================================================
-  //FFT Analyzer
+  
+  //Initialize Parameter Smoothers + RMS Level Followers
+  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
+  mDriveSmoother= new CParamSmooth*[4];
+  mOutputSmoother= new CParamSmooth*[4];
+  mMixSmoother= new CParamSmooth*[4];
+  mRMSDry= new RMSFollower*[4];
+  mRMSWet= new RMSFollower*[4];
+
+  for (int i=0; i<4; i++) {
+    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mRMSDry[i]=new RMSFollower();
+    mRMSWet[i]=new RMSFollower;
+  }
+
+
+  
+  //IRECT For FFT Analyzer
   IRECT iView(40, 20, GUI_WIDTH-40, 20+100);
   
  
@@ -293,9 +284,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //setting +3dB/octave compensation to the fft display
   gAnalyzer->SetOctaveGain(3., true);
 
-  
-  
-  
   //Initialize crossover control
   pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHT_GRAY, &DARK_GRAY, &LIGHT_ORANGE));
   
@@ -403,16 +391,11 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
 
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
-      
-      
-      //samplesFilteredDry = filterBank->processSamp(sample);
-      
-      
+   
       //Loop through bands, process samples
       for (int j=0; j<4; j++) {
         samplesFilteredDry[j]=sample;
         samplesFilteredWet[j]=sample;
-        
         if (mMute[j]) {
           samplesFilteredWet[j]=0;
         }
@@ -670,8 +653,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       mMute[3]=GetParam(kMute4)->Value();
       break;
     
-      
-      
+
     default:
       break;
   }

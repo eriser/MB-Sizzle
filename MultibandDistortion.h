@@ -7,7 +7,6 @@
 #include "IPopupMenuControl.h"
 #include "ICrossoverControl.h"
 #include "RMS.h"
-#include "mbprocessing.h"
 
 class MultibandDistortion : public IPlug
 {
@@ -32,7 +31,15 @@ private:
   CParamSmooth** mOutputSmoother;
   CParamSmooth** mMixSmoother;
   
-
+  CParamSmooth* mDrive1Smoother;
+  CParamSmooth* mOutput1Smoother;
+  CParamSmooth* mDrive2Smoother;
+  CParamSmooth* mOutput2Smoother;
+  CParamSmooth* mDrive3Smoother;
+  CParamSmooth* mOutput3Smoother;
+  CParamSmooth* mDrive4Smoother;
+  CParamSmooth* mOutput4Smoother;
+  
   ISwitchControl* mSoloControl1;
   ISwitchControl* mSoloControl2;
   ISwitchControl* mSoloControl3;
@@ -48,20 +55,17 @@ private:
   IPopUpMenuControl* mDistMode4;
 
   
-  //Color Palette
+  //Set Colors
   IColor DARK_GRAY = IColor(255,50,50,50);
   IColor LIGHT_GRAY = IColor(255,70,70,70);
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);
   
-  
-  //RMS level calculator arrays
   RMSFollower** mRMSDry;
   RMSFollower** mRMSWet;
+
   
-  MBProcessing* filterBank;
-  
-  double* samplesFilteredDry;
+  double samplesFilteredDry[4];
   double samplesFilteredWet[4];
   double chebyshev[8];
   double mInputGain;
