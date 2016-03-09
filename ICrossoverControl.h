@@ -1,169 +1,154 @@
+//
+//  ICrossoverControl.h
+//
+//  Created by Michael Donovan on 3/9/16.
+//  Inspired by MyGraphicControl class by deisss (https://github.com/Deisss/IPlug-basic-graphic-example)
+//
+
 #ifndef ICrossoverControl_H
 #define ICrossoverControl_H
+#include "IControl.h"
 
 #include "IControl.h"
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
-class Handle {
+class CrossoverHandle {
 public:
-    unsigned int uid;
     double x;
-    bool operator < (const Handle& Handle) const { return (this->x < Handle.x); };
-    bool operator > (const Handle& Handle) const {	return (this->x > Handle.x); };
+    int uid;
+    bool operator < (const CrossoverHandle& handle) const { return (this->x < handle.x); };
+    bool operator > (const CrossoverHandle& handle) const {	return (this->x > handle.x); };
 };
 
 class ICrossoverControl : public IControl {
 protected:
-    std::vector<Handle> Handles;
-    Handle selected;
+    IColor* mColor;
+    IColor* mColor2;
+    IColor* mColor3; 
+    CrossoverHandle handles[4];
+    CrossoverHandle selected;
+    double minFreq;
+    double maxFreq;
     bool isDragging;
-    unsigned int counter;
     
-    double convertToGraphicX(double value) {
+    double percentToCoordinates(double value) {
         double min = (double) this->mRECT.L;
         double distance = (double) this->mRECT.W();
         return value * distance + min;
     };
-    double convertToPercentX(double value) {
+    double convertToPercent(double value) {
         double min = (double) this->mRECT.L;
         double position = value - min;
         double distance = (double) this->mRECT.W();
         return position / distance;
     };
 
-    double convertToPercentY(double value) {
-        double min = (double) this->mRECT.T;
-        double position = value - min;
-        double distance = (double) this->mRECT.H();
-        // We return the 1 - distance as the value 1 is located on top of graphics and not bottom
-        return 1 - position / distance;
-    };
     
 public:
-    ICrossoverControl(IPlugBase *pPlug, IRECT pR) : IControl(pPlug, pR) {};
+    ICrossoverControl(IPlugBase *pPlug, IRECT pR, IColor *c1, IColor *c2, IColor *c3) : IControl(pPlug, pR),mColor(c1), mColor2(c2), mColor3(c3),isDragging(false),minFreq(20.),maxFreq(20000.) {
+        for (int i=0; i<4; i++) {
+            handles[i].uid=i+1;
+            handles[i].x=.2*(i+1);
+        }
+    };
     ~ICrossoverControl() {};
     
-    bool IsDirty() { return true; };
-    
-    bool Draw(IGraphics *pGraphics) {
-        IColor color(255, 50, 200, 20);
-        Handle previous;
-        // Little trick, no "real" Handles got uid = 0, so we know it's
-        // not a real Handle, and we should avoid doing line with it...
-        previous.uid = 0;
-        
-        for (std::vector<Handle>::iterator it = Handles.begin(); it != Handles.end(); ++it) {
-            Handle current = *it;
-            // We draw the Handle
-            pGraphics->DrawCircle(&color, convertToGraphicX(current.x), convertToGraphicY(current.y), 3, 0, true);
+    bool Draw(IGraphics *pGraphics){
+        int y = mRECT.T+mRECT.H()/2;
+        for (int i=0; i<4; i++) {
+            CrossoverHandle* current = &handles[i];
             
-            // The previous Handle is a valid Handle, we draw line also
-            if (previous.uid > 0) {
-                pGraphics->DrawLine(&color,
-                                    convertToGraphicX(previous.x), convertToGraphicY(previous.y),
-                                    convertToGraphicX(current.x), convertToGraphicY(current.y),
-                                    0, true);
+     
+            if(i==selected.uid-1){
+                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
+                pGraphics->FillCircle(mColor3, percentToCoordinates(current->x), y, 4);
             }
-            
-            // We update the previous Handle
-            previous = current;
+            else{
+                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
+                pGraphics->FillCircle(mColor, percentToCoordinates(current->x), y, 4);
+            }
+            pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
+
+            IText text = IText(12, &COLOR_WHITE, "Futura");
+            const char* str = (formatFreq(getFreq(i+1)));
+            IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B, percentToCoordinates(current->x)+10, this->mRECT.B+20);
+            pGraphics->DrawIText(&text, (char*)str, &textRect);
         }
-        
-        /* TODO:
-         I didn't put it here, to make you think
-         But you need few more cases to handle:
-         - when there is no Handles on the graphic
-         - when there is a single Handle on the graphic
-         - what to draw BEFORE the first Handle
-         - what to draw AFTER the last Handle
-         */
         return true;
     };
     
-    Handle getHandle(double x, double y, double epsilon) {
-        for (std::vector<Handle>::iterator it = Handles.begin(); it != Handles.end(); ++it) {
-            Handle Handle = *it;
-            double xGraphic = convertToGraphicX(Handle.x);
-            double yGraphic = convertToGraphicY(Handle.y);
+    CrossoverHandle getHandle(double x, double epsilon){
+        for (int i=0; i<4; i++) {
+            CrossoverHandle current = handles[i];
+            double x = percentToCoordinates(current.x);
             
-            if (
-                // X check
-                (xGraphic - epsilon < x && xGraphic + epsilon > x) &&
-                // Y check
-                (yGraphic - epsilon < y && yGraphic + epsilon > y)
-                ) {
-                return Handle;
+            if(x-epsilon < x && x+epsilon > x){
+                return current;
             }
         }
         
-        // Nothing found, we return a "blank" Handle
-        Handle none;
-        none.uid = 0;
+        CrossoverHandle none;
+        none.uid=0;
         return none;
     };
     
-    void OnMouseDblClick(int x, int y, IMouseMod* pMouseMod) {
-        Handle imHere = getHandle(x, y, 6);
-        
-        // As we said, the uid = 0 means no Handle
-        if (imHere.uid == 0) {
-            Handle newHandle;
-            newHandle.x = convertToPercentX(x);
-            newHandle.y = convertToPercentY(y);
-            newHandle.uid = counter++;
-            Handles.push_back(newHandle);
-            // And we sort it!
-            std::sort(Handles.begin(), Handles.end());
-            SetDirty();
-        } else {
-            // We delete the Handle
-            Handles.erase(std::remove(Handles.begin(), Handles.end(), imHere), Handles.end());
+    void OnMouseUp(int x, int y, IMouseMod* pMouseMod){
+        isDragging=false;
+        CrossoverHandle none;
+        none.uid=0;
+        selected=none;
+    };
+    
+    void OnMouseDown(int x, int y,  IMouseMod* pMouseMod){
+        CrossoverHandle current = getHandle(x, 10);
+        if (current.uid==0) {
+            CrossoverHandle none;
+            none.uid=0;
+            selected=none;
+            isDragging=false;
             SetDirty();
         }
-    };
-    
-    void OnMouseUp(int x, int y, IMouseMod* pMouseMod) {
-        isDragging = false;
-    };
-    
-    void OnMouseDown(int x, int y, IMouseMod* pMouseMod) {
-        Handle imHere = getHandle(x, y, 6);
-        
-        if (imHere.uid == 0) {
-            // We erase selected
-            Handle none;
-            none.uid = 0;
-            selected = none;
-            // Not needed, but who knows.
-            isDragging = false;
-            SetDirty();
-        } else {
-            selected = imHere;
+        else{
+            selected = current;
             isDragging = true;
             SetDirty();
         }
     };
     
-    void OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMouseMod) {
-        if (selected.uid == 0 || isDragging == false) {
-            // Nothing to do
-            return;
-        }
+    void OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMouseMod){
+        if(selected.uid==0 || isDragging==false) return;
         
-        // We search for our Handles
-        // As selected is not a Handleer
-        // If we modify it, it will be meaningless...
-        std::vector<Handle>::iterator it = std::find(Handles.begin(), Handles.end(), selected);
+        handles[selected.uid-1].x=convertToPercent(x);
+  
         
-        if (it != Handles.end()) {
-            (&(*it))->x = convertToPercentX(x);
-            (&(*it))->y = convertToPercentY(y);
-        }
-        
-        // And we ask to render
         SetDirty();
     };
+    
+    double getFreq(int band){
+        double mF = maxFreq/minFreq;
+        double xDist = percentToCoordinates(handles[band-1].x)-mRECT.L;
+        return minFreq * std::pow(mF, (double)xDist / (double)(mRECT.W()-1));
+    };
+    
+    const char* formatFreq(double freq){
+        std::stringstream ss;
+        ss << (int)freq;
+        std::string val = ss.str();
+        std::string out;
+        if(freq>=1000 && freq < 10000){
+            out = val.substr(0,1) + "." + val.substr(1,2) + "k";
+        }
+        else if(freq>=10000){
+            out = val.substr(0,2) + "." + val.substr(2,1) + "k";
+        }
+        else{
+            out = val;
+        }
+        
+        return out.c_str();
+    }
 };
 
 #endif

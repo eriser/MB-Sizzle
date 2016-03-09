@@ -5,6 +5,7 @@
 #include "CParamSmooth.h"
 #include "FFTRect.h"
 #include "IPopupMenuControl.h"
+#include "ICrossoverControl.h"
 #include "RMS.h"
 
 class MultibandDistortion : public IPlug

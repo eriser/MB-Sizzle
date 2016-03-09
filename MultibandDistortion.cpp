@@ -267,7 +267,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
 
   
-  pGraphics->AttachControl((IControl*)gFreqLines);
+  //pGraphics->AttachControl((IControl*)gFreqLines);
   
   pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
 
@@ -284,6 +284,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //setting +3dB/octave compensation to the fft display
   gAnalyzer->SetOctaveGain(3., true);
 
+  //Initialize crossover control
+  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHT_GRAY, &DARK_GRAY, &LIGHT_ORANGE));
+  
   AttachGraphics(pGraphics);
 
   

@@ -331,6 +331,10 @@ class gFFTAnalyzer : public IControl
                     yPrev = y;
                     yPrevPeak = yPeak;
                 }
+                
+            pGraphics->DrawHorizontalLine(&mColorBG, mRECT.B-20, mRECT.L, mRECT.R);
+
+                
             return true;
             }
 
