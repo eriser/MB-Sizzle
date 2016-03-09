@@ -70,12 +70,34 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false)
 {
   TRACE;
+
+  
+  //Initialize Parameter Smoothers + RMS Level Followers
+  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
+  mDriveSmoother= new CParamSmooth*[4];
+  mOutputSmoother= new CParamSmooth*[4];
+  mMixSmoother= new CParamSmooth*[4];
+  mRMSDry= new RMSFollower*[4];
+  mRMSWet= new RMSFollower*[4];
+  
+  for (int i=0; i<4; i++) {
+    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mRMSDry[i]=new RMSFollower();
+    mRMSWet[i]=new RMSFollower;
+  }
+
+  //======================================================================================================
   
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
   pGraphics->AttachPanelBackground(&LIGHT_GRAY);
   
+
   //Initialize Parameters
+  //
   //arguments are: name, defaultVal, minVal, maxVal, step, label
+  
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
   GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
@@ -99,7 +121,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMix3)->SetShape(2.);
   GetParam(kMix4)->SetShape(2.);
 
-  
+
   GetParam(kBand1Enable)->InitBool("Band 1: Enable", true);
   GetParam(kBand2Enable)->InitBool("Band 2: Enable", true);
   GetParam(kBand3Enable)->InitBool("Band 3: Enable", true);
@@ -148,7 +170,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode4)->SetDisplayText(5, "Tube");
 
-  //Knobs/sliders
+  //Bitmaps
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
   IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
   IBitmap bypassSmall = pGraphics->LoadIBitmap(BYPASSSMALL_ID, BYPASSSMALL_FN, 2);
@@ -156,23 +178,30 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   IBitmap mute = pGraphics->LoadIBitmap(MUTE_ID, MUTE_FN,2);
   IBitmap link = pGraphics->LoadIBitmap(LINK_ID, LINK_FN,2);
   
+  
+  //Mode Link control
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-34, kDriveY+154, kDistModeLinked, &link));
+  
+  //Drive+Mix sliders
   
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive3X, kDriveY, kDrive3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kDrive4X, kDriveY, kDrive4, &slider));
-
+  
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix1X, kDriveY, kMix1, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix2X, kDriveY, kMix2, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
 
+  //Bypass controls
+  
   pGraphics->AttachControl(new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive4X, kDriveY+180, kBand4Enable, &bypass));
   
+  //Mute+solo controls
   
   mSoloControl1 = new ISwitchControl(this, kDrive1X+44, kDriveY+180, kSolo1, &solo);
   mSoloControl2 = new ISwitchControl(this, kDrive2X+44, kDriveY+180, kSolo2, &solo);
@@ -193,6 +222,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(mMuteControl3);
   pGraphics->AttachControl(mMuteControl4);
   
+  
+  //Slider Labels
+  
   IText text = IText(14, &COLOR_WHITE, "Futura");
   
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRV"));
@@ -206,6 +238,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRV"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+130, kMix4X+24, kDriveY+140), &text, "MIX"));
+  
+  
+  //Dist mode selector menus
   
   IRECT modeRect1 = IRECT(kDrive1X, kDriveY+154, kDrive1X+59, kDriveY+171);
   pGraphics->AttachControl(new IPopUpMenuControl(this, modeRect1, DARK_GRAY, LIGHT_GRAY, kDistMode1));
@@ -222,32 +257,14 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   mDistMode4 = new IPopUpMenuControl(this, modeRect4, DARK_GRAY, LIGHT_GRAY, kDistMode4);
   pGraphics->AttachControl(mDistMode4);
   
-  //Vertical lines
-  pGraphics->DrawVerticalLine(&DARK_GRAY, kDrive2X-20, kDriveY, kDriveY+40);
-  
-  
-  //Initialize Parameter Smoothers + RMS Level Followers
-  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
-  mDriveSmoother= new CParamSmooth*[4];
-  mOutputSmoother= new CParamSmooth*[4];
-  mMixSmoother= new CParamSmooth*[4];
-  mRMSDry= new RMSFollower*[4];
-  mRMSWet= new RMSFollower*[4];
-
-  for (int i=0; i<4; i++) {
-    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mRMSDry[i]=new RMSFollower();
-    mRMSWet[i]=new RMSFollower;
-  }
 
 
+
+  //================================================================================================================================
+  //FFT Analyzer
   
-  //IRECT For FFT Analyzer
   IRECT iView(40, 20, GUI_WIDTH-40, 20+100);
   
- 
   gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
   pGraphics->AttachControl((IControl*)gAnalyzer);
   gAnalyzer->SetdbFloor(-60.);
@@ -285,7 +302,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gAnalyzer->SetOctaveGain(3., true);
 
   //Initialize crossover control
-  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHT_GRAY, &DARK_GRAY, &LIGHT_ORANGE));
+  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHT_GRAY, &DARK_GRAY, &LIGHTER_GRAY));
   
   AttachGraphics(pGraphics);
 

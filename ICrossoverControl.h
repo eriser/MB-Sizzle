@@ -63,14 +63,19 @@ public:
      
             if(i==selected.uid-1){
                 pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
+  
                 pGraphics->FillCircle(mColor3, percentToCoordinates(current->x), y, 4);
             }
             else{
                 pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
+
+
                 pGraphics->FillCircle(mColor, percentToCoordinates(current->x), y, 4);
             }
+            
             pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
 
+            
             IText text = IText(12, &COLOR_WHITE, "Futura");
             const char* str = (formatFreq(getFreq(i+1)));
             IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B, percentToCoordinates(current->x)+10, this->mRECT.B+20);
@@ -82,9 +87,9 @@ public:
     CrossoverHandle getHandle(double x, double epsilon){
         for (int i=0; i<4; i++) {
             CrossoverHandle current = handles[i];
-            double x = percentToCoordinates(current.x);
+            double xh = percentToCoordinates(current.x);
             
-            if(x-epsilon < x && x+epsilon > x){
+            if(x-epsilon < xh && x+epsilon > xh){
                 return current;
             }
         }
@@ -119,10 +124,28 @@ public:
     
     void OnMouseDrag(int x, int y, int dX, int dY, IMouseMod* pMouseMod){
         if(selected.uid==0 || isDragging==false) return;
+
+        double leftBound;
+        double rightBound;
+        double xPercent=convertToPercent(x);
         
-        handles[selected.uid-1].x=convertToPercent(x);
+        if (selected.uid==1) {
+            leftBound=0;
+            rightBound=handles[1].x;
+        }
+        else if(selected.uid==4){
+            leftBound=handles[2].x;
+            rightBound=1;
+        }
+        else{
+            leftBound=handles[selected.uid-2].x;
+            rightBound=handles[selected.uid].x;
+        }
+
+        if(xPercent<rightBound-.02 && xPercent>leftBound+.02){
+            handles[selected.uid-1].x=xPercent;
+        }
   
-        
         SetDirty();
     };
     

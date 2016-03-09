@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultibandDistortion.cpp"
-            timestampString = "479190166.111877"
+            timestampString = "479239934.468056"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "200"
-            endingLineNumber = "200"
+            startingLineNumber = "232"
+            endingLineNumber = "232"
             landmarkName = "MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)"
             landmarkType = "5">
          </BreakpointContent>
@@ -42,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "MultibandDistortion.cpp"
-            timestampString = "479205544.870808"
+            timestampString = "479242297.737636"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "370"
-            endingLineNumber = "370"
+            startingLineNumber = "387"
+            endingLineNumber = "387"
             landmarkName = "MultibandDistortion::ProcessDistortion(double sample, int distType)"
             landmarkType = "5">
          </BreakpointContent>
@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ICrossoverControl.h"
-            timestampString = "479205897.442434"
+            timestampString = "479242237.352147"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "150"
-            endingLineNumber = "150"
+            startingLineNumber = "173"
+            endingLineNumber = "173"
             landmarkName = "formatFreq(double freq)"
             landmarkType = "5">
          </BreakpointContent>
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "ICrossoverControl.h"
-            timestampString = "479205897.442434"
+            timestampString = "479242237.352147"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "77"
-            endingLineNumber = "77"
+            startingLineNumber = "82"
+            endingLineNumber = "82"
             landmarkName = "Draw(IGraphics *pGraphics)"
             landmarkType = "5">
          </BreakpointContent>
