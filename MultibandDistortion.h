@@ -1,15 +1,12 @@
 #ifndef __MULTIBANDDISTORTION__
 #define __MULTIBANDDISTORTION__
 
-#define WDL_BESSEL_FILTER_ORDER 8
-#define WDL_BESSEL_DENORMAL_AGGRESSIVE
-
 #include "IPlug_include_in_plug_hdr.h"
 #include "CParamSmooth.h"
 #include "FFTRect.h"
 #include "IPopupMenuControl.h"
 #include "RMS.h"
-#include "besselfilter.h"
+
 class MultibandDistortion : public IPlug
 {
 public:
@@ -57,25 +54,20 @@ private:
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);
   
-  RMSFollower** mRMSDry;
-  RMSFollower** mRMSWet;
+  //RMSFollower** mRMSDry;
+  //RMSFollower** mRMSWet;
 
-  WDL_BesselFilterCoeffs mAntiAlias;
-  WDL_BesselFilterStage mUpsample, mDownsample;
-
-  
   
   double samplesFilteredDry[4];
   double samplesFilteredWet[4];
   double chebyshev[8];
   double mInputGain;
   double mOutputGain;
-  double RMSDry, RMSWet;
+  double sample, RMSDry, RMSWet;
 
   
   const int fftSize=4096;
   const int channelCount = 2;
-  const int mOversampling;
   
   int mDistType;
   int mPolynomials;
@@ -91,8 +83,6 @@ private:
   bool mOutputClipping;
   
   bool mSpectBypass;
-  
-  
 
 };
 
