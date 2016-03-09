@@ -28,6 +28,7 @@ private:
   
   CParamSmooth** mDriveSmoother;
   CParamSmooth** mOutputSmoother;
+  CParamSmooth** mMixSmoother;
   
   CParamSmooth* mDrive1Smoother;
   CParamSmooth* mOutput1Smoother;
@@ -63,7 +64,7 @@ private:
   double chebyshev[8];
   double mInputGain;
   double mOutputGain;
-  double sample, RMSDry, RMSWet;
+  double RMSDry, RMSWet;
 
   
   const int fftSize=4096;

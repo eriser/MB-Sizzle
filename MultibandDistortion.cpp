@@ -93,7 +93,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix3)->InitDouble("Band 3: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix4)->InitDouble("Band 4: Mix", 100., 0., 100., 0.001, "%");
+  GetParam(kMix1)->SetShape(2.);
+  GetParam(kMix2)->SetShape(2.);
+  GetParam(kMix3)->SetShape(2.);
+  GetParam(kMix4)->SetShape(2.);
 
+  
   GetParam(kBand1Bypass)->InitBool("Band 1: Bypass", true);
   GetParam(kBand2Bypass)->InitBool("Band 2: Bypass", true);
   GetParam(kBand3Bypass)->InitBool("Band 3: Bypass", true);
@@ -218,12 +223,14 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
   mDriveSmoother= new CParamSmooth*[4];
   mOutputSmoother= new CParamSmooth*[4];
+  mMixSmoother= new CParamSmooth*[4];
   //mRMSDry= new RMSFollower*[4];
   //mRMSWet= new RMSFollower*[4];
 
   for (int i=0; i<4; i++) {
     mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
     //mRMSDry[i]=new RMSFollower();
     //mRMSWet[i]=new RMSFollower;
   }
@@ -370,13 +377,11 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     double* output = outputs[i];
     
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
-       sample = *input;
+      double sample = *input;
 
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
       
-      sample = ProcessDistortion(sample, 2);
-
     
       //Loop through bands, process samples
       for (int j=0; j<4; j++) {
@@ -553,6 +558,9 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo1:
       mSolo[0]=GetParam(kSolo1)->Value();
       if(mSolo[0]){
+        mSolo[1]=false;
+        mSolo[2]=false;
+        mSolo[3]=false;
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -564,6 +572,9 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo2:
       mSolo[1]=GetParam(kSolo2)->Value();
       if(mSolo[1]){
+        mSolo[0]=false;
+        mSolo[2]=false;
+        mSolo[3]=false;
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -575,6 +586,9 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo3:
       mSolo[2]=GetParam(kSolo3)->Value();
       if(mSolo[2]){
+        mSolo[0]=false;
+        mSolo[1]=false;
+        mSolo[3]=false;
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -586,6 +600,9 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo4:
       mSolo[3]=GetParam(kSolo4)->Value();
       if(mSolo[3]){
+        mSolo[0]=false;
+        mSolo[1]=false;
+        mSolo[2]=false;
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
