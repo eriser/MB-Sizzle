@@ -18,9 +18,20 @@ public:
     
     bool Draw(IGraphics* pGraphics)
     {
-        pGraphics->FillIRect(&mColor, &mRECT);
+        IColor TriangleColor;
         IChannelBlend blend = IChannelBlend();
-        pGraphics->FillTriangle(&COLOR_WHITE, mRECT.L+4, mRECT.T+4, mRECT.L+4, mRECT.B-4, mRECT.L+8, (mRECT.T + mRECT.H()/2 ), &blend);
+        if(IsGrayed()){
+            blend.mMethod=blend.kBlendColorDodge;
+            blend.mWeight=.8;
+            mText = IText(14,&COLOR_GRAY,"Futura");
+        }
+        else{
+            mText = IText(14,&COLOR_WHITE,"Futura");
+            blend = IChannelBlend();
+        }
+
+        pGraphics->FillIRect(&mColor, &mRECT, &blend);
+        pGraphics->FillTriangle(&COLOR_GRAY, mRECT.L+4, mRECT.T+4, mRECT.L+4, mRECT.B-4, mRECT.L+8, (mRECT.T + mRECT.H()/2 ), &blend);
         char disp[32];
         mPlug->GetParam(mParamIdx)->GetDisplayForHost(disp);
         

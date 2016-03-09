@@ -59,6 +59,7 @@ instrument determined by PLUG _IS _INST
 #define BYPASSSMALL_ID 103
 #define SOLO_ID 104
 #define MUTE_ID 105
+#define LINK_ID 106
 
 // Image resource locations for this plug.
 #define SLIDER_FN "resources/img/Slider.png"
@@ -66,6 +67,7 @@ instrument determined by PLUG _IS _INST
 #define BYPASSSMALL_FN "resources/img/BypassSmall.png"
 #define SOLO_FN "resources/img/Solo.png"
 #define MUTE_FN "resources/img/Mute.png"
+#define LINK_FN "resources/img/Link.png"
 
 // GUI default dimensions
 #define GUI_WIDTH 460
