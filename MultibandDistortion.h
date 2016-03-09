@@ -19,7 +19,7 @@ public:
   double fastAtan(double x);
   double ProcessDistortion(double sample, int distType);
 
-private:
+private:  
   Spect_FFT* sFFT;
   gFFTAnalyzer* gAnalyzer;
   gFFTFreqDraw* gFreqLines;
@@ -49,14 +49,19 @@ private:
   ISwitchControl* mMuteControl3;
   ISwitchControl* mMuteControl4;
   
+  IPopUpMenuControl* mDistMode2;
+  IPopUpMenuControl* mDistMode3;
+  IPopUpMenuControl* mDistMode4;
+
+  
   //Set Colors
   IColor DARK_GRAY = IColor(255,50,50,50);
   IColor LIGHT_GRAY = IColor(255,70,70,70);
   IColor LIGHT_ORANGE = IColor(255,245,187,0);
   IColor DARK_ORANGE = IColor(255,236,159,5);
   
-  //RMSFollower** mRMSDry;
-  //RMSFollower** mRMSWet;
+  RMSFollower** mRMSDry;
+  RMSFollower** mRMSWet;
 
   
   double samplesFilteredDry[4];
@@ -78,11 +83,11 @@ private:
   int mDistMode[4];
   bool mMute[4];
   bool mSolo[4];
-  bool mBypass[4];
+  bool mEnable[4];
   
+  bool mDistModesLinked;
   bool mAutoGainComp;
   bool mOutputClipping;
-  
   bool mSpectBypass;
 
 };
