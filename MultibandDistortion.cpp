@@ -66,9 +66,14 @@ enum ELayout
 };
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
-  :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.)
+  :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.), mOversampling(4)
 {
   TRACE;
+  
+  //Oversampling
+  mAntiAlias.Calc(0.5 / (double)mOversampling);
+  mUpsample.Reset();
+  mDownsample.Reset();
   
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
   pGraphics->AttachPanelBackground(&LIGHT_GRAY);
@@ -78,7 +83,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
   GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
-  GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
+  GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 48., 0.0001, "dB");
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", false);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
@@ -216,6 +221,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   //Initialize Parameter Smoothers + RMS Level Followers
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
+  mOutputGainSmoother= new CParamSmooth(5.0, GetSampleRate());
   mDriveSmoother= new CParamSmooth*[4];
   mOutputSmoother= new CParamSmooth*[4];
   //mRMSDry= new RMSFollower*[4];
@@ -349,9 +355,9 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   
   //tube emulation
   else if (distType==5){
-    sample = sin(sample) + pow(abs(sin(sample)), 2) - .1;
-    sample = sin(sample) + pow(abs(sin(sample)), 4) - .1;
-    sample = sin(sample) + pow(abs(sin(sample)), 8) - .1;
+    sample = sin(sample) + pow(fabs(sin(sample)), 2) - .1;
+    sample = sin(sample) + pow(fabs(sin(sample)), 4) - .1;
+    sample = sin(sample) + pow(fabs(sin(sample)), 8) - .1;
 
   }
   return sample;
@@ -370,68 +376,83 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     double* output = outputs[i];
     
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
-       sample = *input;
-
-      //Apply input gain
-      sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
+      double sample = *input;
       
-      sample = ProcessDistortion(sample, 2);
-
-    
-      //Loop through bands, process samples
-      for (int j=0; j<4; j++) {
-        samplesFilteredDry[j]=sample;
-        samplesFilteredWet[j]=sample;
-        if (mMute[j]) {
-          samplesFilteredWet[j]=0;
+      for (int k=0; k<mOversampling; k++) {
+        if(k>0) sample=0.;
+        mUpsample.Process(sample, mAntiAlias.Coeffs());
+        sample = (double)mOversampling * mUpsample.Output();
+        
+        //Apply input gain
+        sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents artifacts when changing parameter value
+        
+        sample = ProcessDistortion(sample, 2);
+        
+        
+        //Loop through bands, process samples
+        if(WDL_DENORMAL_OR_ZERO_DOUBLE_AGGRESSIVE(&sample)){
+          sample=0;
         }
-        else {
-          if (mBypass[j]) {
-            if (mAutoGainComp) {
-              //RMSDry=mRMSDry[j]->getRMS(samplesFiltered[j]);
+        else{
+          for (int j=0; j<4; j++) {
+            samplesFilteredDry[j]=sample;
+            samplesFilteredWet[j]=sample;
+            if (mMute[j]) {
+              samplesFilteredWet[j]=0;
             }
-            
-            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
-            samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
-            
-            //Mix
-            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
-            
-            if (mAutoGainComp) {
-              //RMSWet=mRMSWet[j]->getRMS(samplesFiltered[j]);
-             // samplesFiltered[j]*=RMSDry/RMSWet;
+            else {
+              if (mBypass[j]) {
+                samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
+                samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
+                
+                //Mix
+                samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+                
+                if (mAutoGainComp) {
+                  RMSDry=mRMSDry[j]->getRMS(samplesFilteredDry[j]);
+                  RMSWet=mRMSWet[j]->getRMS(samplesFilteredWet[j]);
+                  samplesFilteredWet[j]*=RMSDry/RMSWet;
+                }
+              }
             }
           }
         }
-      }
-  
-      
-      //Sum output
-      sample=0;
-      for(int j=0; j<4; j++){
-        if (mSolo[j]) {
-          sample=samplesFilteredWet[j];
-          break;
+        
+        //Sum output
+        sample=0;
+        for(int j=0; j<4; j++){
+          if (mSolo[j]) {
+            sample=samplesFilteredWet[j];
+            break;
+          }
+          else{
+            sample+=samplesFilteredWet[j];
+          }
         }
-        else{
-          sample+=samplesFilteredWet[j];
+        //sample /= 4;
+        
+        //Clipping
+        if(mOutputClipping){
+          if (sample>1) {
+            sample = DBToAmp(-0.1);
+          }
+          else if (sample<-1) {
+            sample = -1*DBToAmp(-0.1);
+          }
         }
-      }
-      //sample /= 4;
-      
-      //Clipping
-      if(mOutputClipping){
-        if (sample>1) {
-          sample = DBToAmp(-0.1);
+
+        //Downsample
+        mDownsample.Process(sample, mAntiAlias.Coeffs());
+        if (k==0) {
+          sample=mDownsample.Output();
         }
-        else if (sample<-1) {
-          sample = -1*DBToAmp(-0.1);
-        }
+        
       }
       
       if(mSpectBypass) sFFT->SendInput(sample);
 
       
+      sample *= DBToAmp(mOutputGainSmoother->process(mOutputGain));
       *output = sample;
     }
   }

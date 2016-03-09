@@ -41,5 +41,6 @@ dependencies: \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../fft.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../IPopupMenuControl.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../RMS.h \
+  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/app_wrapper/../besselfilter.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/swell/swell-dlggen.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/swell/swell-menugen.h
