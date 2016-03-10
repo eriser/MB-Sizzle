@@ -227,17 +227,17 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText text = IText(14, &COLOR_WHITE, "Futura");
   
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+130, kDrive1X+24, kDriveY+140), &text, "DRV"));
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+130, kMix1X+24, kDriveY+140), &text, "MIX"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+132, kDrive1X+24, kDriveY+142), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+132, kMix1X+24, kDriveY+142), &text, "MIX"));
  
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+130, kDrive2X+24, kDriveY+140), &text, "DRV"));
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix2X, kDriveY+130, kMix2X+24, kDriveY+140), &text, "MIX"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+132, kDrive2X+24, kDriveY+142), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix2X, kDriveY+132, kMix2X+24, kDriveY+142), &text, "MIX"));
  
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+130, kDrive3X+24, kDriveY+140), &text, "DRV"));
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix3X, kDriveY+130, kMix3X+24, kDriveY+140), &text, "MIX"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+132, kDrive3X+24, kDriveY+142), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix3X, kDriveY+132, kMix3X+24, kDriveY+142), &text, "MIX"));
   
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+130, kDrive4X+24, kDriveY+140), &text, "DRV"));
-  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+130, kMix4X+24, kDriveY+140), &text, "MIX"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive4X, kDriveY+132, kDrive4X+24, kDriveY+142), &text, "DRIVE"));
+  pGraphics->AttachControl(new ITextControl(this, IRECT(kMix4X, kDriveY+132, kMix4X+24, kDriveY+142), &text, "MIX"));
   
   
   //Dist mode selector menus
@@ -268,7 +268,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
   pGraphics->AttachControl((IControl*)gAnalyzer);
   gAnalyzer->SetdbFloor(-60.);
-  gAnalyzer->SetColors(LIGHT_ORANGE, DARK_ORANGE, DARK_GRAY);
+  gAnalyzer->SetColors(MID_GRAY, DARK_ORANGE, DARK_GRAY);
 
 #ifdef OS_OSX
   char* fontName = "Futura";
@@ -286,7 +286,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   //pGraphics->AttachControl((IControl*)gFreqLines);
   
-  pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
 
   //Vertical lines
   
@@ -302,7 +301,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gAnalyzer->SetOctaveGain(3., true);
 
   //Initialize crossover control
-  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHT_GRAY, &DARK_GRAY, &LIGHTER_GRAY));
+  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE));
+  
+  pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
+
   
   AttachGraphics(pGraphics);
 
@@ -314,6 +316,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //initializing FFT class
   sFFT = new Spect_FFT(this, fftSize, 2);
   sFFT->SetWindowType(Spect_FFT::win_BlackmanHarris);
+
+  
 
 }
 

@@ -27,7 +27,7 @@ protected:
     IColor* mColor;
     IColor* mColor2;
     IColor* mColor3; 
-    CrossoverHandle handles[4];
+    CrossoverHandle handles[3];
     CrossoverHandle selected;
     double minFreq;
     double maxFreq;
@@ -48,44 +48,47 @@ protected:
     
 public:
     ICrossoverControl(IPlugBase *pPlug, IRECT pR, IColor *c1, IColor *c2, IColor *c3) : IControl(pPlug, pR),mColor(c1), mColor2(c2), mColor3(c3),isDragging(false),minFreq(20.),maxFreq(20000.) {
-        for (int i=0; i<4; i++) {
+        for (int i=0; i<3; i++) {
             handles[i].uid=i+1;
-            handles[i].x=.2*(i+1);
+            handles[i].x=.25*(i+1);
         }
     };
     ~ICrossoverControl() {};
     
     bool Draw(IGraphics *pGraphics){
         int y = mRECT.T+mRECT.H()/2;
-        for (int i=0; i<4; i++) {
+        for (int i=0; i<3; i++) {
             CrossoverHandle* current = &handles[i];
             
      
             if(i==selected.uid-1){
-                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
-  
-                pGraphics->FillCircle(mColor3, percentToCoordinates(current->x), y, 4);
+                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, y+4);
+                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), y-4, this->mRECT.T);
+
+                pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 3);
+                pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 4);
             }
             else{
-                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, this->mRECT.T);
+                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, y+4);
+                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), y-4, this->mRECT.T);
 
-
-                pGraphics->FillCircle(mColor, percentToCoordinates(current->x), y, 4);
+                pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 3);
+                pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 4);
             }
             
-            pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
+            //pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
 
             
             IText text = IText(12, &COLOR_WHITE, "Futura");
             const char* str = (formatFreq(getFreq(i+1)));
-            IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B, percentToCoordinates(current->x)+10, this->mRECT.B+20);
+            IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B+2, percentToCoordinates(current->x)+10, this->mRECT.B+22);
             pGraphics->DrawIText(&text, (char*)str, &textRect);
         }
         return true;
     };
     
     CrossoverHandle getHandle(double x, double epsilon){
-        for (int i=0; i<4; i++) {
+        for (int i=0; i<3; i++) {
             CrossoverHandle current = handles[i];
             double xh = percentToCoordinates(current.x);
             
@@ -133,8 +136,8 @@ public:
             leftBound=0;
             rightBound=handles[1].x;
         }
-        else if(selected.uid==4){
-            leftBound=handles[2].x;
+        else if(selected.uid==3){
+            leftBound=handles[1].x;
             rightBound=1;
         }
         else{
@@ -142,7 +145,7 @@ public:
             rightBound=handles[selected.uid].x;
         }
 
-        if(xPercent<rightBound-.02 && xPercent>leftBound+.02){
+        if(xPercent<rightBound-.05 && xPercent>leftBound+.05){
             handles[selected.uid-1].x=xPercent;
         }
   
