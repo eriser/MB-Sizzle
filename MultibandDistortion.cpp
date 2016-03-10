@@ -42,7 +42,6 @@ enum EParams
   kCrossoverFreq1,
   kCrossoverFreq2,
   kCrossoverFreq3,
-  kCrossoverControl,
   kNumParams
 };
 
@@ -323,7 +322,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //==================================================================================================================================
   
   //Initialize crossover control
-  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverControl, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3));
+  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3));
   
   pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
 
