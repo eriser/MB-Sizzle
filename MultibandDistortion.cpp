@@ -301,7 +301,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText lFont(12, &COLOR_WHITE, fontName, IText::kStyleNormal, IText::kAlignCenter, 0, texttype);
   // adding the vertical frequency lines
-  //gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
+  gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
 
   
   //pGraphics->AttachControl((IControl*)gFreqLines);
