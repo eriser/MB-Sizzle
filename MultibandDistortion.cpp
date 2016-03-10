@@ -88,7 +88,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   allpass3 = new CFxRbjFilter();
   allpass3->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
+  
   //Initialize Parameter Smoothers + RMS Level Followers
+  mCrossoverSmoother1 = new CParamSmooth(10.0, GetSampleRate());
+  mCrossoverSmoother2 = new CParamSmooth(10.0, GetSampleRate());
+  mCrossoverSmoother3 = new CParamSmooth(10.0, GetSampleRate());
+  
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
   mDriveSmoother= new CParamSmooth*[4];
   mOutputSmoother= new CParamSmooth*[4];
@@ -702,19 +707,19 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
     
     case kCrossoverFreq1:
-      mCrossoverFreq1=GetParam(kCrossoverFreq1)->Value();
+      mCrossoverFreq1 = mCrossoverSmoother1->process(GetParam(kCrossoverFreq1)->Value());
       band1lp->setCutoff(mCrossoverFreq1);
       band2hp->setCutoff(mCrossoverFreq1);
       break;
       
     case kCrossoverFreq2:
-      mCrossoverFreq2=GetParam(kCrossoverFreq2)->Value();
+      mCrossoverFreq2 = mCrossoverSmoother2->process(GetParam(kCrossoverFreq2)->Value());
       band2lp->setCutoff(mCrossoverFreq2);
       band3hp->setCutoff(mCrossoverFreq2);
       break;
       
     case kCrossoverFreq3:
-      mCrossoverFreq3=GetParam(kCrossoverFreq3)->Value();
+      mCrossoverFreq3 = mCrossoverSmoother3->process(GetParam(kCrossoverFreq3)->Value());
       band3lp->setCutoff(mCrossoverFreq3);
       band4hp->setCutoff(mCrossoverFreq3);
       break;

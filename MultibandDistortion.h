@@ -42,6 +42,10 @@ private:
   CParamSmooth* mDrive4Smoother;
   CParamSmooth* mOutput4Smoother;
   
+  CParamSmooth* mCrossoverSmoother1;
+  CParamSmooth* mCrossoverSmoother2;
+  CParamSmooth* mCrossoverSmoother3;
+  
   ISwitchControl* mSoloControl1;
   ISwitchControl* mSoloControl2;
   ISwitchControl* mSoloControl3;

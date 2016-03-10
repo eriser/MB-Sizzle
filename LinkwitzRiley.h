@@ -20,12 +20,6 @@ public:
         sr = sampleRate;
         filterType = type;
         fc = cutoffFreq;
-        for (int i=0; i<4; i++) {
-            buffX[0][i]=0;
-            buffX[1][i]=0;
-            buffY[0][i]=0;
-            buffY[1][i]=0;
-        }
         
         calcFilter();
     };
@@ -60,6 +54,14 @@ public:
 private:
     void calcFilter(){
         double wc, wc2, wc3, wc4, k, k2, k3, k4, sqrt2, sq_tmp1, sq_tmp2, a_tmp;
+        
+        for (int i=0; i<4; i++) {
+            buffX[0][i]=0;
+            buffX[1][i]=0;
+            buffY[0][i]=0;
+            buffY[1][i]=0;
+        }
+        
         wc=2*pi*fc;
         wc2=wc*wc;
         wc3=wc2*wc;
@@ -92,6 +94,8 @@ private:
             a3=a1;
             a4=a0;
         }
+        
+        
     };
     
     
