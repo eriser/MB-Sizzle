@@ -39,6 +39,9 @@ enum EParams
   kMute4,
   kDistModeLinked,
   kSpectBypass,
+  kCrossoverFreq1,
+  kCrossoverFreq2,
+  kCrossoverFreq3,
   kNumParams
 };
 
@@ -71,6 +74,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 {
   TRACE;
 
+  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
+  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
+  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
+  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
+  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
+  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
+
   
   //Initialize Parameter Smoothers + RMS Level Followers
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
@@ -97,6 +107,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //Initialize Parameters
   //
   //arguments are: name, defaultVal, minVal, maxVal, step, label
+  GetParam(kCrossoverFreq1)->InitDouble("Crossover 1: Freq", 112., 20., 20000., .0001, "Hz");
+  GetParam(kCrossoverFreq2)->InitDouble("Crossover 2: Freq", 637., 20., 20000., .0001, "Hz");
+  GetParam(kCrossoverFreq3)->InitDouble("Crossover 3: Freq", 3600., 20., 20000., .0001, "Hz");
+
   
   GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
   GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
@@ -195,7 +209,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
 
   //Bypass controls
-  
+
   pGraphics->AttachControl(new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Enable, &bypass));
@@ -300,8 +314,11 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //setting +3dB/octave compensation to the fft display
   gAnalyzer->SetOctaveGain(3., true);
 
+  
+  //==================================================================================================================================
+  
   //Initialize crossover control
-  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE));
+  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3));
   
   pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
 
@@ -413,10 +430,17 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
    
+      
+      samplesFilteredDry[0]=band1lp->process(sample);
+      samplesFilteredDry[1]=band2hp->process(sample);
+      samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1]);
+      samplesFilteredDry[2]=band3hp->process(sample);
+      samplesFilteredDry[2]=band3lp->process(samplesFilteredDry[2]);
+      samplesFilteredDry[3]=band4hp->process(sample);
+
       //Loop through bands, process samples
       for (int j=0; j<4; j++) {
-        samplesFilteredDry[j]=sample;
-        samplesFilteredWet[j]=sample;
+        samplesFilteredWet[j]=samplesFilteredDry[j];
         if (mMute[j]) {
           samplesFilteredWet[j]=0;
         }
@@ -674,6 +698,23 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       mMute[3]=GetParam(kMute4)->Value();
       break;
     
+    case kCrossoverFreq1:
+      mCrossoverFreq1=GetParam(kCrossoverFreq1)->Value();
+      band1lp->setCutoff(mCrossoverFreq1);
+      band2hp->setCutoff(mCrossoverFreq1);
+      break;
+      
+    case kCrossoverFreq2:
+      mCrossoverFreq2=GetParam(kCrossoverFreq2)->Value();
+      band2lp->setCutoff(mCrossoverFreq2);
+      band3hp->setCutoff(mCrossoverFreq2);
+      break;
+      
+    case kCrossoverFreq3:
+      mCrossoverFreq3=GetParam(kCrossoverFreq3)->Value();
+      band3lp->setCutoff(mCrossoverFreq3);
+      band4hp->setCutoff(mCrossoverFreq3);
+      break;
 
     default:
       break;

@@ -7,6 +7,7 @@
 #include "IPopupMenuControl.h"
 #include "ICrossoverControl.h"
 #include "RMS.h"
+#include "LinkwitzRiley.h"
 
 class MultibandDistortion : public IPlug
 {
@@ -68,7 +69,13 @@ private:
   RMSFollower** mRMSDry;
   RMSFollower** mRMSWet;
 
-  
+  LinkwitzRiley* band1lp;
+  LinkwitzRiley* band2hp;
+  LinkwitzRiley* band2lp;
+  LinkwitzRiley* band3hp;
+  LinkwitzRiley* band3lp;
+  LinkwitzRiley* band4hp;
+
   double samplesFilteredDry[4];
   double samplesFilteredWet[4];
   double chebyshev[8];
@@ -76,6 +83,10 @@ private:
   double mOutputGain;
   double RMSDry, RMSWet;
 
+  
+  double mCrossoverFreq1;
+  double mCrossoverFreq2;
+  double mCrossoverFreq3;
   
   const int fftSize=4096;
   const int channelCount = 2;
