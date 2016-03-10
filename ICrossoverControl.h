@@ -153,15 +153,7 @@ public:
 
         if(xPercent<rightBound-.05 && xPercent>leftBound+.05){
             handles[selected.uid-1].x=xPercent;
-            if(selected.uid==1){
-                mValue= handles[0].x;
-            }
-            else if(selected.uid==2){
-                mValue2= handles[1].x;
-            }
-            else if(selected.uid==3){
-                mValue3=handles[2].x;
-            }
+            updateValues();
         }
   
         SetDirty(true);
@@ -174,6 +166,11 @@ public:
         return minFreq * std::pow(mF, (double)xDist / (double)(mRECT.W()-1));
     };
     
+    void updateValues(){
+        mValue = handles[0].x;
+        mValue2 = handles[1].x;
+        mValue3 = handles[2].x;
+    }
     
     const char* formatFreq(double freq){
         std::stringstream ss;

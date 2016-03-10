@@ -77,35 +77,26 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   mUpsample.Reset();
   mDownsample.Reset();
   
-  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
-  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
-  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
-  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
-  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
-  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
+  band1lp =  LinkwitzRiley(GetSampleRate(), Lowpass, 112);
+  band2hp =  LinkwitzRiley(GetSampleRate(), Highpass, 112);
+  band2lp =  LinkwitzRiley(GetSampleRate(), Lowpass, 637);
+  band3hp =  LinkwitzRiley(GetSampleRate(), Highpass, 637);
+  band3lp =  LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
+  band4hp =  LinkwitzRiley(GetSampleRate(), Highpass, 3600);
   
-  allpass1 = new CFxRbjFilter();
-  allpass1->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
-  allpass2 = new CFxRbjFilter();
-  allpass2->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
-  allpass3 = new CFxRbjFilter();
-  allpass3->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
+  allpass1 =  CFxRbjFilter();
+  allpass1.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
+  allpass2 =  CFxRbjFilter();
+  allpass2.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
+  allpass3 =  CFxRbjFilter();
+  allpass3.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
-  //Initialize Parameter Smoothers
-  mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
-  mDriveSmoother= new CParamSmooth*[4];
-  mOutputSmoother= new CParamSmooth*[4];
-  mMixSmoother= new CParamSmooth*[4];
-
-  mCrossoverSmoother1 = new CParamSmooth(7.0, GetSampleRate());
-  mCrossoverSmoother2 = new CParamSmooth(7.0, GetSampleRate());
-  mCrossoverSmoother3 = new CParamSmooth(7.0, GetSampleRate());
 
   
   for (int i=0; i<4; i++) {
-    mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
+    mDriveSmoother[i] = CParamSmooth(5.0,GetSampleRate());
+    mOutputSmoother[i] = CParamSmooth(5.0,GetSampleRate());
+    mMixSmoother[i] = CParamSmooth(5.0,GetSampleRate());
 
   }
   
@@ -429,20 +420,20 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       double sample = *input;
       
       //Apply input gain
-      sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
+      sample *= DBToAmp(mInputGainSmoother.process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
       
       
       
       
-      samplesFilteredDry[0]=band1lp->process(sample,i);
+      samplesFilteredDry[0]=band1lp.process(sample,i);
       //   samplesFilteredDry[0]=allpass1->process(samplesFilteredDry[0]);
       // samplesFilteredDry[0]=allpass2->process(samplesFilteredDry[0]);
-      samplesFilteredDry[1]=band2hp->process(sample, i);
-      samplesFilteredDry[3]=band4hp->process(samplesFilteredDry[1], i);
+      samplesFilteredDry[1]=band2hp.process(sample, i);
+      samplesFilteredDry[3]=band4hp.process(samplesFilteredDry[1], i);
       //samplesFilteredDry[3]=allpass3->process(samplesFilteredDry[3]);
-      samplesFilteredDry[1]=band3lp->process(samplesFilteredDry[1],i);
-      samplesFilteredDry[2]=band3hp->process(samplesFilteredDry[1],i);
-      samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1],i);
+      samplesFilteredDry[1]=band3lp.process(samplesFilteredDry[1],i);
+      samplesFilteredDry[2]=band3hp.process(samplesFilteredDry[1],i);
+      samplesFilteredDry[1]=band2lp.process(samplesFilteredDry[1],i);
       
 //      samplesFilteredDry[0] = band1lp->process(sample, i);
 //      samplesFilteredDry[1] = band2hp->process(sample, i);
@@ -461,7 +452,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         else {
           samplesFilteredWet[j]=samplesFilteredDry[j];
           if (mEnable[j]) {
-            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
+            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j].process(mDrive[j]));
             
             if(mDistModesLinked){
               samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[0]);
@@ -471,7 +462,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
             }
             
             //Gain comp
-            samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j]->process(-.9*mDrive[j]));
+            samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.9*mDrive[j]));
             
 
             //Mix
@@ -705,20 +696,20 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       
     case kCrossoverFreq1:
       mCrossoverFreq1=percentToFreq(GetParam(kCrossoverFreq1)->Value());
-      band1lp->setCutoff(mCrossoverFreq1);
-      band2hp->setCutoff(mCrossoverFreq1);
+      band1lp.setCutoff(mCrossoverFreq1);
+      band2hp.setCutoff(mCrossoverFreq1);
       break;
       
     case kCrossoverFreq2:
       mCrossoverFreq2=percentToFreq(GetParam(kCrossoverFreq2)->Value());
-      band2lp->setCutoff(mCrossoverFreq2);
-      band3hp->setCutoff(mCrossoverFreq2);
+      band2lp.setCutoff(mCrossoverFreq2);
+      band3hp.setCutoff(mCrossoverFreq2);
       break;
       
     case kCrossoverFreq3:
       mCrossoverFreq3=percentToFreq(GetParam(kCrossoverFreq3)->Value());
-      band3lp->setCutoff(mCrossoverFreq3);
-      band4hp->setCutoff(mCrossoverFreq3);
+      band3lp.setCutoff(mCrossoverFreq3);
+      band4hp.setCutoff(mCrossoverFreq3);
       break;
       
     default:

@@ -11,6 +11,7 @@
 class CParamSmooth
 {
 public:
+    CParamSmooth();
     CParamSmooth(float smoothingTimeInMs, float samplingRate);
 
     ~CParamSmooth(){};
