@@ -31,11 +31,9 @@ protected:
     CrossoverHandle selected;
     double minFreq;
     double maxFreq;
-    int mParamIdx2;
-    int mParamIdx3;
+    int auxParamIdx1;
+    int auxParamIdx2;
     bool isDragging;
-    double mValue2;
-    double mValue3;
     
     double percentToCoordinates(double value) {
         double min = (double) this->mRECT.L;
@@ -51,12 +49,11 @@ protected:
 
     
 public:
-    ICrossoverControl(IPlugBase *pPlug, IRECT pR, IColor *c1, IColor *c2, IColor *c3, int paramIdx1, int paramIdx2, int paramIdx3) : IControl(pPlug, pR, paramIdx1),mColor(c1), mColor2(c2), mColor3(c3),isDragging(false),minFreq(20.),maxFreq(20000.) {
+    ICrossoverControl(IPlugBase *pPlug, IRECT pR, IColor *c1, IColor *c2, IColor *c3, int paramIdx1, int paramIdx2, int paramIdx3) : IControl(pPlug, pR, paramIdx1),mColor(c1), mColor2(c2), mColor3(c3),isDragging(false),minFreq(20.),maxFreq(20000.),auxParamIdx1(paramIdx2),auxParamIdx2(paramIdx3) {
         for (int i=0; i<3; i++) {
             handles[i].uid=i+1;
             handles[i].x=.25*(i+1);
         }
-        
         AddAuxParam(paramIdx2);
         AddAuxParam(paramIdx3);
     };
@@ -123,12 +120,12 @@ public:
             none.uid=0;
             selected=none;
             isDragging=false;
-            SetDirty(false);
+            SetDirty();
         }
         else{
             selected = current;
             isDragging = true;
-            SetDirty(false);
+            SetDirty();
         }
     };
     
@@ -155,17 +152,17 @@ public:
         if(xPercent<rightBound-.05 && xPercent>leftBound+.05){
             handles[selected.uid-1].x=xPercent;
             if(selected.uid==1){
-                //mValue=getFreq(1);
+                mValue=getFreq(1);
             }
             else if(selected.uid==2){
-                //GetAuxParam(0)->mValue=getFreq(2);
+                SetAuxParamValueFromPlug(auxParamIdx1, getFreq(2));
             }
             else if(selected.uid==3){
-                //GetAuxParam(1)->mValue=getFreq(3);
+                GetAuxParam(auxParamIdx2)->mValue=getFreq(3);
             }
         }
   
-        SetDirty(true);
+        SetDirty();
     };
     
     double getFreq(int band){
@@ -191,8 +188,6 @@ public:
         
         return out.c_str();
     }
-    
-
 };
 
 #endif
