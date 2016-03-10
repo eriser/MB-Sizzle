@@ -16,6 +16,13 @@ enum FilterType {
 
 class LinkwitzRiley{
 public:
+    LinkwitzRiley(){
+        sr = 44100;
+        filterType = 0;
+        fc = 1000;
+        calcFilter();
+    }
+    
     LinkwitzRiley(float sampleRate, const int& type, double cutoffFreq){
         sr = sampleRate;
         filterType = type;
@@ -24,7 +31,9 @@ public:
         calcFilter();
     };
     
-    ~LinkwitzRiley();
+    double getCuttoff(){ return fc; };
+    
+    ~LinkwitzRiley(){};
     
     
     //  Process sample of audio

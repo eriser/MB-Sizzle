@@ -23,32 +23,35 @@ public:
   void Reset();
   void OnParamChange(int paramIdx);
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
-  double fastAtan(double x);
   double ProcessDistortion(double sample, int distType);
+  
+private:
+  void smoothFilters();
+  double fastAtan(double x);
+  double percentToFreq(double p);
 
-private:  
   Spect_FFT* sFFT;
   gFFTAnalyzer* gAnalyzer;
   gFFTFreqDraw* gFreqLines;
-  CParamSmooth* mInputGainSmoother;
-  CParamSmooth* mOutputGainSmoother;
+  CParamSmooth mInputGainSmoother;
+  CParamSmooth mOutputGainSmoother;
   
-  CParamSmooth** mDriveSmoother;
-  CParamSmooth** mOutputSmoother;
-  CParamSmooth** mMixSmoother;
+  CParamSmooth mDriveSmoother[4];
+  CParamSmooth mOutputSmoother[4];
+  CParamSmooth mMixSmoother[4];
   
-  CParamSmooth* mDrive1Smoother;
-  CParamSmooth* mOutput1Smoother;
-  CParamSmooth* mDrive2Smoother;
-  CParamSmooth* mOutput2Smoother;
-  CParamSmooth* mDrive3Smoother;
-  CParamSmooth* mOutput3Smoother;
-  CParamSmooth* mDrive4Smoother;
-  CParamSmooth* mOutput4Smoother;
+  CParamSmooth mDrive1Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mOutput1Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mDrive2Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mOutput2Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mDrive3Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mOutput3Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mDrive4Smoother = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mOutput4Smoother = CParamSmooth(5.0,GetSampleRate());
   
-  CParamSmooth* mCrossoverSmoother1;
-  CParamSmooth* mCrossoverSmoother2;
-  CParamSmooth* mCrossoverSmoother3;
+  CParamSmooth mCrossoverSmoother1 = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mCrossoverSmoother2 = CParamSmooth(5.0,GetSampleRate());
+  CParamSmooth mCrossoverSmoother3 = CParamSmooth(5.0,GetSampleRate());
   
   ISwitchControl* mSoloControl1;
   ISwitchControl* mSoloControl2;
@@ -75,19 +78,16 @@ private:
   IColor TRANSP_ORANGE = IColor(255,245*.22,187*.22,0);
   
   
-  RMSFollower** mRMSDry;
-  RMSFollower** mRMSWet;
-
-  LinkwitzRiley* band1lp;
-  LinkwitzRiley* band2hp;
-  LinkwitzRiley* band2lp;
-  LinkwitzRiley* band3hp;
-  LinkwitzRiley* band3lp;
-  LinkwitzRiley* band4hp;
+  LinkwitzRiley band1lp;
+  LinkwitzRiley band2hp;
+  LinkwitzRiley band2lp;
+  LinkwitzRiley band3hp;
+  LinkwitzRiley band3lp;
+  LinkwitzRiley band4hp;
   
-  CFxRbjFilter* allpass1;
-  CFxRbjFilter* allpass2;
-  CFxRbjFilter* allpass3;
+  CFxRbjFilter allpass1;
+  CFxRbjFilter allpass2;
+  CFxRbjFilter allpass3;
 
   WDL_BesselFilterCoeffs mAntiAlias;
   WDL_BesselFilterStage mUpsample, mDownsample;
@@ -117,7 +117,6 @@ private:
   bool mEnable[4];
   
   bool mDistModesLinked;
-  bool mAutoGainComp;
   bool mOutputClipping;
   bool mSpectBypass;
 
