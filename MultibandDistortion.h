@@ -8,7 +8,6 @@
 #include "ICrossoverControl.h"
 #include "RMS.h"
 #include "LinkwitzRiley.h"
-#include "FilterButterworth24db.h"
 
 class MultibandDistortion : public IPlug
 {
@@ -70,12 +69,12 @@ private:
   RMSFollower** mRMSDry;
   RMSFollower** mRMSWet;
 
-  CFilterButterworth24db * band1lp;
-  CFilterButterworth24db* band2hp;
-  CFilterButterworth24db* band2lp;
-  CFilterButterworth24db* band3hp;
-  CFilterButterworth24db* band3lp;
-  CFilterButterworth24db* band4hp;
+  LinkwitzRiley* band1lp;
+  LinkwitzRiley* band2hp;
+  LinkwitzRiley* band2lp;
+  LinkwitzRiley* band3hp;
+  LinkwitzRiley* band3lp;
+  LinkwitzRiley* band4hp;
 
   double samplesFilteredDry[4];
   double samplesFilteredWet[4];

@@ -74,21 +74,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 {
   TRACE;
 
-//  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
-//  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
-//  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
-//  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
-//  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
-//  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
-
-  band1lp = new CFilterButterworth24db();
-  band1lp->SetSampleRate(GetSampleRate());
-  band1lp->set
-  band2hp = new CFilterButterworth24db();
-  band2lp = new CFilterButterworth24db();
-  band3hp = new CFilterButterworth24db();
-  band3lp = new CFilterButterworth24db();
-  band4hp = new CFilterButterworth24db();
+  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
+  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
+  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
+  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
+  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
+  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
 
   
   //Initialize Parameter Smoothers + RMS Level Followers
