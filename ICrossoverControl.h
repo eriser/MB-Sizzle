@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <sstream>
 
-class CrossoverHandle {
+class CrossoverHandle{
 public:
     double x;
     int uid;
