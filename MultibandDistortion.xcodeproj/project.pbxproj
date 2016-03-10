@@ -64,8 +64,6 @@
 		4C17DA9F1C8FDA7A001C1C7F /* Link.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C17DA9B1C8FDA79001C1C7F /* Link.png */; };
 		4C17DAA01C8FDA7A001C1C7F /* Link.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C17DA9B1C8FDA79001C1C7F /* Link.png */; };
 		4C17DAA11C8FDA7A001C1C7F /* Link.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C17DA9B1C8FDA79001C1C7F /* Link.png */; };
-		4C49512F1C911125004E3D47 /* IRoundedPanelControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C49512E1C911125004E3D47 /* IRoundedPanelControl.h */; };
-		4C4951301C911125004E3D47 /* IRoundedPanelControl.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C49512E1C911125004E3D47 /* IRoundedPanelControl.h */; };
 		4CB19A5C1C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
 		4CB19A5D1C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
 		4CB19A5E1C8E691400A12761 /* Bypass.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CB19A5B1C8E691400A12761 /* Bypass.png */; };
@@ -519,7 +517,6 @@
 		4C0370D61C850B6D00C33BB8 /* VAStateVariableFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VAStateVariableFilter.cpp; sourceTree = "<group>"; };
 		4C0370D71C850B6D00C33BB8 /* VAStateVariableFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VAStateVariableFilter.h; sourceTree = "<group>"; };
 		4C17DA9B1C8FDA79001C1C7F /* Link.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Link.png; path = resources/img/Link.png; sourceTree = "<group>"; };
-		4C49512E1C911125004E3D47 /* IRoundedPanelControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRoundedPanelControl.h; sourceTree = "<group>"; };
 		4CB19A5B1C8E691400A12761 /* Bypass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Bypass.png; path = resources/img/Bypass.png; sourceTree = "<group>"; };
 		4CB19A711C8E7FB500A12761 /* IPopupMenuControl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPopupMenuControl.h; sourceTree = "<group>"; };
 		4CB19A761C8E992100A12761 /* ICrossoverControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ICrossoverControl.h; sourceTree = "<group>"; };
@@ -829,7 +826,6 @@
 				52FBBED00D0CF139001C8B8A /* MultibandDistortion.cpp */,
 				4CB19A761C8E992100A12761 /* ICrossoverControl.h */,
 				4CB19A881C8F776400A12761 /* RMS.h */,
-				4C49512E1C911125004E3D47 /* IRoundedPanelControl.h */,
 				4C0370CF1C850B3800C33BB8 /* Helpful Utilities */,
 				089C167CFE841241C02AAC07 /* Resources */,
 				32C88E010371C26100C91783 /* Other Sources */,
@@ -1475,7 +1471,6 @@
 				4C0370DF1C850B6D00C33BB8 /* CParamSmooth.h in Headers */,
 				4F78D94113B63BA50032E0F3 /* IControl.h in Headers */,
 				4CED85911C8E056C00B832EF /* denormal.h in Headers */,
-				4C4951301C911125004E3D47 /* IRoundedPanelControl.h in Headers */,
 				4F78D94213B63BA50032E0F3 /* IKeyboardControl.h in Headers */,
 				4F78D94413B63BA50032E0F3 /* IPlugBase.h in Headers */,
 				4C0370E71C850B6D00C33BB8 /* DSPUtilities.h in Headers */,
@@ -1554,7 +1549,6 @@
 				4F3EE94613B65A350097B791 /* IPlugOSDetect.h in Headers */,
 				4CB19A891C8F776400A12761 /* RMS.h in Headers */,
 				4FDA440F13F3E4F2000B4551 /* IBitmapMonoText.h in Headers */,
-				4C49512F1C911125004E3D47 /* IRoundedPanelControl.h in Headers */,
 				4CB19A771C8E992100A12761 /* ICrossoverControl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

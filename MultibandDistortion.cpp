@@ -49,8 +49,8 @@ enum ELayout
   
   kNumModes=6,
   
-  kDriveY = 142,
-  kDrive1X = 55,
+  kDriveY = 132,
+  kDrive1X = 45,
   kDrive2X = kDrive1X+104,
   kDrive3X = kDrive2X+104,
   kDrive4X = kDrive3X+104,
@@ -60,8 +60,8 @@ enum ELayout
   kMix3X = kMix2X+104,
   kMix4X = kMix3X+104,
   
-  kSpectBypassX = 37,
-  kSpectBypassY = 32,
+  kSpectBypassX = 27,
+  kSpectBypassY = 22,
   
   kSliderFrames=33
 };
@@ -91,9 +91,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //======================================================================================================
   
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
-  pGraphics->AttachPanelBackground(&DARK_GRAY);
-  pGraphics->AttachControl(new IRoundedPanelControl(this, IRECT(10, 10, kWidth-10, kHeight-10), &LIGHT_GRAY));
+  pGraphics->AttachPanelBackground(&LIGHT_GRAY);
   
+
   //Initialize Parameters
   //
   //arguments are: name, defaultVal, minVal, maxVal, step, label
@@ -263,7 +263,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //================================================================================================================================
   //FFT Analyzer
   
-  IRECT iView(35, 30, GUI_WIDTH-35, 30+100);
+  IRECT iView(25, 20, GUI_WIDTH-25, 20+100);
   
   gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
   pGraphics->AttachControl((IControl*)gAnalyzer);

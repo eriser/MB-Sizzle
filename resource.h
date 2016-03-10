@@ -70,8 +70,8 @@ instrument determined by PLUG _IS _INST
 #define LINK_FN "resources/img/Link.png"
 
 // GUI default dimensions
-#define GUI_WIDTH 480
-#define GUI_HEIGHT 395
+#define GUI_WIDTH 460
+#define GUI_HEIGHT 375
 
 // on MSVC, you must define SA_API in the resource editor preprocessor macros as well as the c++ ones
 #if defined(SA_API) && !defined(OS_IOS)
