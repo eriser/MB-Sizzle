@@ -49,18 +49,18 @@ enum ELayout
   
   kNumModes=6,
   
-  kDriveY = 135,
-  kDrive1X = 50,
-  kDrive2X = kDrive1X+100,
-  kDrive3X = kDrive2X+100,
-  kDrive4X = kDrive3X+100,
+  kDriveY = 132,
+  kDrive1X = 45,
+  kDrive2X = kDrive1X+104,
+  kDrive3X = kDrive2X+104,
+  kDrive4X = kDrive3X+104,
   
-  kMix1X = 85,
-  kMix2X = kMix1X+100,
-  kMix3X = kMix2X+100,
-  kMix4X = kMix3X+100,
+  kMix1X = kDrive1X+35,
+  kMix2X = kMix1X+104,
+  kMix3X = kMix2X+104,
+  kMix4X = kMix3X+104,
   
-  kSpectBypassX = 42,
+  kSpectBypassX = 27,
   kSpectBypassY = 22,
   
   kSliderFrames=33
@@ -180,7 +180,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   
   //Mode Link control
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-34, kDriveY+154, kDistModeLinked, &link));
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kDistModeLinked, &link));
   
   //Drive+Mix sliders
   
@@ -263,7 +263,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //================================================================================================================================
   //FFT Analyzer
   
-  IRECT iView(40, 20, GUI_WIDTH-40, 20+100);
+  IRECT iView(25, 20, GUI_WIDTH-25, 20+100);
   
   gAnalyzer = new gFFTAnalyzer(this, iView, COLOR_WHITE, -1, fftSize, false);
   pGraphics->AttachControl((IControl*)gAnalyzer);
