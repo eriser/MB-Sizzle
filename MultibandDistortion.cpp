@@ -2,14 +2,13 @@
 #include "IPlug_include_in_plug_src.h"
 #include "IControl.h"
 #include "resource.h"
+#include "denormal.h"
 
 const int kNumPrograms = 1;
 
 enum EParams
 {
-  kDistType = 0,
-  kNumPolynomials,
-  kInputGain,
+  kInputGain=0,
   kDrive1,
   kDrive2,
   kDrive3,
@@ -69,11 +68,16 @@ enum ELayout
   kSliderFrames=33
 };
 
-MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
-  :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false)
+MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
+  IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
+  mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false), mOversampling(2)
 {
   TRACE;
-
+  
+  mAntiAlias.Calc(0.5 / (double)mOversampling);
+  mUpsample.Reset();
+  mDownsample.Reset();
+  
   band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
   band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
   band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
@@ -108,23 +112,21 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
     mRMSDry[i]=new RMSFollower();
     mRMSWet[i]=new RMSFollower;
   }
-
+  
   //======================================================================================================
   
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
   pGraphics->AttachPanelBackground(&LIGHT_GRAY);
   
-
+  
   //Initialize Parameters
   //
   //arguments are: name, defaultVal, minVal, maxVal, step, label
   GetParam(kCrossoverFreq1)->InitDouble("Crossover 1: Freq", 112., 20., 20000., .0001, "Hz");
   GetParam(kCrossoverFreq2)->InitDouble("Crossover 2: Freq", 637., 20., 20000., .0001, "Hz");
   GetParam(kCrossoverFreq3)->InitDouble("Crossover 3: Freq", 3600., 20., 20000., .0001, "Hz");
-
   
-  GetParam(kDistType)->InitInt("Distortion Type", 1, 1, 8);
-  GetParam(kNumPolynomials)->InitInt("Num Chebyshev Polynomials", 3, 1, 5);
+  
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", false);
@@ -136,7 +138,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 36., 0.0001, "dB");
   GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 36., 0.0001, "dB");
   GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 36., 0.0001, "dB");
-
+  
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix3)->InitDouble("Band 3: Mix", 100., 0., 100., 0.001, "%");
@@ -145,13 +147,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMix2)->SetShape(2.);
   GetParam(kMix3)->SetShape(2.);
   GetParam(kMix4)->SetShape(2.);
-
-
+  
+  
   GetParam(kBand1Enable)->InitBool("Band 1: Enable", true);
   GetParam(kBand2Enable)->InitBool("Band 2: Enable", true);
   GetParam(kBand3Enable)->InitBool("Band 3: Enable", true);
   GetParam(kBand4Enable)->InitBool("Band 4: Enable", true);
-
+  
   GetParam(kSolo1)->InitBool("Band 1: Solo", false);
   GetParam(kSolo2)->InitBool("Band 2: Solo", false);
   GetParam(kSolo3)->InitBool("Band 3: Solo", false);
@@ -162,7 +164,6 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kMute3)->InitBool("Band 3: Mute", false);
   GetParam(kMute4)->InitBool("Band 4: Mute", false);
   
-  
   GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, kNumModes);
   GetParam(kDistMode1)->SetDisplayText(0, "Excite");
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
@@ -170,7 +171,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
   GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode1)->SetDisplayText(5, "Tube");
-
+  
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
   GetParam(kDistMode2)->SetDisplayText(0, "Excite");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
@@ -178,7 +179,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
   GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode2)->SetDisplayText(5, "Tube");
-
+  
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
   GetParam(kDistMode3)->SetDisplayText(0, "Excite");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
@@ -186,7 +187,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
   GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode3)->SetDisplayText(5, "Tube");
-
+  
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
   GetParam(kDistMode4)->SetDisplayText(0, "Excite");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
@@ -194,7 +195,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
   GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
   GetParam(kDistMode4)->SetDisplayText(5, "Tube");
-
+  
   //Bitmaps
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
   IBitmap bypass = pGraphics->LoadIBitmap(BYPASS_ID, BYPASS_FN, 2);
@@ -218,9 +219,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix2X, kDriveY, kMix2, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
   pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
-
+  
   //Bypass controls
-
+  
   pGraphics->AttachControl(new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Enable, &bypass));
   pGraphics->AttachControl(new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Enable, &bypass));
@@ -236,7 +237,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(mSoloControl2);
   pGraphics->AttachControl(mSoloControl3);
   pGraphics->AttachControl(mSoloControl4);
-
+  
   mMuteControl1 = new ISwitchControl(this, kDrive1X+44, kDriveY+196, kMute1, &mute);
   mMuteControl2 = new ISwitchControl(this, kDrive2X+44, kDriveY+196, kMute2, &mute);
   mMuteControl3 = new ISwitchControl(this, kDrive3X+44, kDriveY+196, kMute3, &mute);
@@ -254,10 +255,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive1X, kDriveY+132, kDrive1X+24, kDriveY+142), &text, "DRIVE"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix1X, kDriveY+132, kMix1X+24, kDriveY+142), &text, "MIX"));
- 
+  
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive2X, kDriveY+132, kDrive2X+24, kDriveY+142), &text, "DRIVE"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix2X, kDriveY+132, kMix2X+24, kDriveY+142), &text, "MIX"));
- 
+  
   pGraphics->AttachControl(new ITextControl(this, IRECT(kDrive3X, kDriveY+132, kDrive3X+24, kDriveY+142), &text, "DRIVE"));
   pGraphics->AttachControl(new ITextControl(this, IRECT(kMix3X, kDriveY+132, kMix3X+24, kDriveY+142), &text, "MIX"));
   
@@ -273,7 +274,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   IRECT modeRect2 = IRECT(kDrive2X, kDriveY+154, kDrive2X+59, kDriveY+171);
   mDistMode2 = new IPopUpMenuControl(this, modeRect2, DARK_GRAY, LIGHT_GRAY, kDistMode2);
   pGraphics->AttachControl(mDistMode2);
-
+  
   IRECT modeRect3 = IRECT(kDrive3X, kDriveY+154, kDrive3X+59, kDriveY+171);
   mDistMode3 = new IPopUpMenuControl(this, modeRect3, DARK_GRAY, LIGHT_GRAY, kDistMode3);
   pGraphics->AttachControl(mDistMode3);
@@ -282,9 +283,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   mDistMode4 = new IPopUpMenuControl(this, modeRect4, DARK_GRAY, LIGHT_GRAY, kDistMode4);
   pGraphics->AttachControl(mDistMode4);
   
-
-
-
+  
+  
+  
   //================================================================================================================================
   //FFT Analyzer
   
@@ -294,7 +295,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl((IControl*)gAnalyzer);
   gAnalyzer->SetdbFloor(-60.);
   gAnalyzer->SetColors(MID_GRAY, DARK_ORANGE, DARK_GRAY);
-
+  
 #ifdef OS_OSX
   char* fontName = "Futura";
   IText::EQuality texttype = IText::kQualityAntiAliased;
@@ -307,11 +308,11 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   IText lFont(12, &COLOR_WHITE, fontName, IText::kStyleNormal, IText::kAlignCenter, 0, texttype);
   // adding the vertical frequency lines
   gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
-
+  
   
   //pGraphics->AttachControl((IControl*)gFreqLines);
   
-
+  
   
   //setting the min/max freq for fft display and freq lines
   const double maxF = 20000.;
@@ -322,7 +323,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   gFreqLines->SetMinFreq(minF);
   //setting +3dB/octave compensation to the fft display
   gAnalyzer->SetOctaveGain(3., true);
-
+  
   
   //==================================================================================================================================
   
@@ -330,10 +331,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3));
   
   pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
-
+  
   
   AttachGraphics(pGraphics);
-
+  
   
   //MakePreset("preset 1", ... );
   MakeDefaultPreset((char *) "-", kNumPrograms);
@@ -342,9 +343,9 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   //initializing FFT class
   sFFT = new Spect_FFT(this, fftSize, 2);
   sFFT->SetWindowType(Spect_FFT::win_BlackmanHarris);
-
   
-
+  
+  
 }
 
 MultibandDistortion::~MultibandDistortion() {}
@@ -352,62 +353,71 @@ MultibandDistortion::~MultibandDistortion() {}
 
 double MultibandDistortion::ProcessDistortion(double sample, int distType)
 {
-  //Soft asymmetrical clipping
-  //algorithm by Bram de Jong, from musicdsp.org archives
-  if (distType==0) {
-    double threshold = 0.8;
-    double drySample=sample;
-    if(sample>threshold)
-      sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
-    else if(sample >1)
-      //sample = (sample + 1)/2;
-      sample=1;
-    sample=sample*.9+drySample*.1;
-  }
-  
-  //arctan waveshaper
-  else if(distType==1){
-    sample =  1/3. * fastAtan(sample * 3);
-  }
-  
-  //Sine shaper
-  //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
-  else if(distType==2){
-    double amount = 1.6;
-    double z = M_PI * amount/4.0;
-    double s = 1/sin(z);
-    double b = 1 / amount;
+  for (int m; m<mOversampling; m++) {
+    // Upsample
+    if (m > 0) sample = 0.;
+    mUpsample.Process(sample, mAntiAlias.Coeffs());
+    sample = (double)mOversampling * mUpsample.Output();
     
-    if (sample>b)
-      sample = sample + (1-sample)*0.8;
-    else if (sample < - b)
-      sample = sample + (-1-sample)*0.8;
-    else
-      sample = sin(z * sample) * s;
-    
-    sample *= pow(10, -amount/20.0);
-  }
-  
-  //Foldback Distortion
-  //algorithm by hellfire@upb.de, from musicdsp.org archives
-  else if(distType==3){
-    double threshold = .9;
-    if (sample > threshold || sample < - threshold) {
-      sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
+    //Soft asymmetrical clipping
+    if (distType==0) {
+      double threshold = 0.8;
+      double drySample=sample;
+      if(sample>threshold)
+        sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
+      else if(sample >1)
+        //sample = (sample + 1)/2;
+        sample=1;
+     // sample=sample*.9+drySample*.1;
     }
-  }
-  
-  //First 5 order chebyshev polynomials
-  else if (distType==4){
-    sample=tanh(sample);
-  }
-  
-  //tube emulation
-  else if (distType==5){
-    sample = sin(sample) + pow(std::abs(sin(sample)), 2);
-    sample = sin(sample) + pow(std::abs(sin(sample)), 4);
-    sample = sin(sample) + pow(std::abs(sin(sample)), 8);
-
+    
+    //arctan waveshaper
+    else if(distType==1){
+      sample =  1/3. * fastAtan(sample * 3);
+    }
+    
+    //Sine shaper
+    //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
+    else if(distType==2){
+      double amount = 1.6;
+      double z = M_PI * amount/4.0;
+      double s = 1/sin(z);
+      double b = 1 / amount;
+      
+      if (sample>b)
+        sample = sample + (1-sample)*0.8;
+      else if (sample < - b)
+        sample = sample + (-1-sample)*0.8;
+      else
+        sample = sin(z * sample) * s;
+      
+      sample *= pow(10, -amount/20.0);
+    }
+    
+    //Foldback Distortion
+    //algorithm by hellfire@upb.de, from musicdsp.org archives
+    else if(distType==3){
+      double threshold = .9;
+      if (sample > threshold || sample < - threshold) {
+        sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
+      }
+    }
+    
+    //First 5 order chebyshev polynomials
+    else if (distType==4){
+      sample=tanh(sample);
+    }
+    
+    //tube emulation
+    else if (distType==5){
+      sample = sin(sample) + pow(std::abs(sin(sample)), 2);
+      sample = sin(sample) + pow(std::abs(sin(sample)), 4);
+      sample = sin(sample) + pow(std::abs(sin(sample)), 8);
+      
+    }
+    // Downsample
+    mDownsample.Process(sample, mAntiAlias.Coeffs());
+    if (m == 0) sample = mDownsample.Output();
   }
   return sample;
 }
@@ -418,8 +428,8 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
 void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames)
 {
   // Mutex is already locked for us.
-
-
+  
+  
   for (int i = 0; i < channelCount; i++) {
     double* input = inputs[i];
     double* output = outputs[i];
@@ -429,11 +439,13 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
-   
+      
+      
+      
       
       samplesFilteredDry[0]=band1lp->process(sample,i);
-   //   samplesFilteredDry[0]=allpass1->process(samplesFilteredDry[0]);
-     // samplesFilteredDry[0]=allpass2->process(samplesFilteredDry[0]);
+      //   samplesFilteredDry[0]=allpass1->process(samplesFilteredDry[0]);
+      // samplesFilteredDry[0]=allpass2->process(samplesFilteredDry[0]);
       samplesFilteredDry[1]=band2hp->process(sample, i);
       samplesFilteredDry[3]=band4hp->process(samplesFilteredDry[1], i);
       //samplesFilteredDry[3]=allpass3->process(samplesFilteredDry[3]);
@@ -441,10 +453,14 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       samplesFilteredDry[2]=band3hp->process(samplesFilteredDry[1],i);
       samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1],i);
       
+      for(int j=0; j<4; j++){
+        samplesFilteredWet[j]=samplesFilteredDry[j];
+      }
+      
+      
       //Loop through bands, process samples
       for (int j=0; j<4; j++) {
-        samplesFilteredWet[j]=samplesFilteredDry[j];
-        if (mMute[j]) {
+        if (mMute[j]||WDL_DENORMAL_OR_ZERO_DOUBLE_AGGRESSIVE(&samplesFilteredDry[j])) {
           samplesFilteredWet[j]=0;
         }
         else {
@@ -471,11 +487,10 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
             //Mix
             samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
             
-
+            
           }
         }
       }
-  
       
       //Sum output
       sample=0;
@@ -499,8 +514,12 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         }
       }
       
+      
+      
+      
+      
       if(mSpectBypass) sFFT->SendInput(sample);
-
+      
       
       *output = sample;
     }
@@ -525,21 +544,13 @@ void MultibandDistortion::Reset()
 void MultibandDistortion::OnParamChange(int paramIdx)
 {
   IMutexLock lock(this);
-
+  
   switch (paramIdx)
   {
-    case kDistType:
-      mDistType = GetParam(kDistType)->Value();
-      break;
-      
-    case kNumPolynomials:
-      mPolynomials = GetParam(kNumPolynomials)->Value();
-      break;
-      
     case kInputGain:
       mInputGain = GetParam(kInputGain)->Value();
       break;
-    
+      
     case kOutputGain:
       mOutputGain = GetParam(kOutputGain)->Value();
       break;
@@ -555,7 +566,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kDrive1:
       mDrive[0]=GetParam(kDrive1)->Value();
       break;
-
+      
     case kDrive2:
       mDrive[1]=GetParam(kDrive2)->Value();
       break;
@@ -571,7 +582,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kMix1:
       mMix[0]=GetParam(kMix1)->Value()/100.;
       break;
-
+      
     case kMix2:
       mMix[1]=GetParam(kMix2)->Value()/100.;
       break;
@@ -595,7 +606,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kBand3Enable:
       mEnable[2]=GetParam(kBand3Enable)->Value();
       break;
-     
+      
     case kBand4Enable:
       mEnable[3]=GetParam(kBand4Enable)->Value();
       break;
@@ -621,7 +632,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kDistMode2:
       mDistMode[1]=GetParam(kDistMode2)->Value();
       break;
-    
+      
     case kDistMode3:
       mDistMode[2]=GetParam(kDistMode3)->Value();
       break;
@@ -705,7 +716,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kMute4:
       mMute[3]=GetParam(kMute4)->Value();
       break;
-    
+      
     case kCrossoverFreq1:
       mCrossoverFreq1 = mCrossoverSmoother1->process(GetParam(kCrossoverFreq1)->Value());
       band1lp->setCutoff(mCrossoverFreq1);
@@ -723,7 +734,7 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       band3lp->setCutoff(mCrossoverFreq3);
       band4hp->setCutoff(mCrossoverFreq3);
       break;
-
+      
     default:
       break;
   }

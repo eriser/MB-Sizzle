@@ -10,6 +10,10 @@
 #include "LinkwitzRiley.h"
 #include "CFxRbjFilter.h"
 
+#define WDL_BESSEL_FILTER_ORDER 8
+#define WDL_BESSEL_DENORMAL_AGGRESSIVE
+#include "besselfilter.h"
+
 class MultibandDistortion : public IPlug
 {
 public:
@@ -85,6 +89,8 @@ private:
   CFxRbjFilter* allpass2;
   CFxRbjFilter* allpass3;
 
+  WDL_BesselFilterCoeffs mAntiAlias;
+  WDL_BesselFilterStage mUpsample, mDownsample;
   
   double samplesFilteredDry[4];
   double samplesFilteredWet[4];
@@ -101,8 +107,7 @@ private:
   const int fftSize=4096;
   const int channelCount = 2;
   
-  int mDistType;
-  int mPolynomials;
+  const int mOversampling;
 
   double mDrive[4];
   double mMix[4];
