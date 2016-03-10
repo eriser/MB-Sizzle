@@ -93,6 +93,10 @@ private:
   
   const int fftSize=4096;
   const int channelCount = 2;
+  const int mOversampling;
+  
+  WDL_BesselFilterCoeffs mAntiAlias;
+  WDL_BesselFilterStage mUpsample, mDownsample;
   
   int mDistType;
   int mPolynomials;
