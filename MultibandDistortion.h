@@ -7,7 +7,7 @@
 #include "IPopupMenuControl.h"
 #include "ICrossoverControl.h"
 #include "RMS.h"
-
+#include "IRoundedPanelControl.h"
 class MultibandDistortion : public IPlug
 {
 public:
