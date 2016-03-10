@@ -835,7 +835,6 @@
 				4C33ECC81C9114C700356673 /* LinkwitzRiley.h */,
 				4C33ECCB1C91396B00356673 /* FilterButterworth24db.h */,
 				4C33ECCC1C9139AE00356673 /* FilterButterworth24db.cpp */,
-				4C33ECDE1C91411600356673 /* ATK */,
 				4CB19A881C8F776400A12761 /* RMS.h */,
 				4C0370CF1C850B3800C33BB8 /* Helpful Utilities */,
 				089C167CFE841241C02AAC07 /* Resources */,
@@ -925,13 +924,6 @@
 				4C0370D71C850B6D00C33BB8 /* VAStateVariableFilter.h */,
 			);
 			name = "Helpful Utilities";
-			sourceTree = "<group>";
-		};
-		4C33ECDE1C91411600356673 /* ATK */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = ATK;
 			sourceTree = "<group>";
 		};
 		4F05224015656DAD00AE0D2E /* AAX Plugin */ = {
