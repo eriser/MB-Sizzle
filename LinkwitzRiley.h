@@ -31,6 +31,8 @@ public:
         calcFilter();
     };
     
+    double getCuttoff(){ return fc; };
+    
     ~LinkwitzRiley(){};
     
     

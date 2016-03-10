@@ -419,6 +419,8 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
       double sample = *input;
       
+      
+      
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother.process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
       
@@ -625,13 +627,17 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo1:
       mSolo[0]=GetParam(kSolo1)->Value();
       if(mSolo[0]){
-        mSolo[1]=false;
-        mSolo[2]=false;
-        mSolo[3]=false;
+
+
+        this->SetParameterFromGUI(kSolo2, 0);
+        this->SetParameterFromGUI(kSolo3, 0);
+        this->SetParameterFromGUI(kSolo4, 0);
+        this->SetParameterFromGUI(kMute1, 0);
+
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
-        
+  
         mMuteControl1->SetValueFromPlug(false);
       }
       break;
@@ -639,9 +645,11 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo2:
       mSolo[1]=GetParam(kSolo2)->Value();
       if(mSolo[1]){
-        mSolo[0]=false;
-        mSolo[2]=false;
-        mSolo[3]=false;
+        this->SetParameterFromGUI(kSolo1, 0);
+        this->SetParameterFromGUI(kSolo3, 0);
+        this->SetParameterFromGUI(kSolo4, 0);
+        this->SetParameterFromGUI(kMute2, 0);
+        
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -653,9 +661,13 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo3:
       mSolo[2]=GetParam(kSolo3)->Value();
       if(mSolo[2]){
-        mSolo[0]=false;
-        mSolo[1]=false;
-        mSolo[3]=false;
+
+
+        this->SetParameterFromGUI(kSolo1, 0);
+        this->SetParameterFromGUI(kSolo2, 0);
+        this->SetParameterFromGUI(kSolo4, 0);
+        this->SetParameterFromGUI(kMute3, 0);
+
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl4->SetValueFromPlug(false);
@@ -667,9 +679,13 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     case kSolo4:
       mSolo[3]=GetParam(kSolo4)->Value();
       if(mSolo[3]){
-        mSolo[0]=false;
-        mSolo[1]=false;
-        mSolo[2]=false;
+
+        
+        this->SetParameterFromGUI(kSolo1, 0);
+        this->SetParameterFromGUI(kSolo2, 0);
+        this->SetParameterFromGUI(kSolo3, 0);
+        this->SetParameterFromGUI(kMute4, 0);
+        
         mSoloControl1->SetValueFromPlug(false);
         mSoloControl2->SetValueFromPlug(false);
         mSoloControl3->SetValueFromPlug(false);

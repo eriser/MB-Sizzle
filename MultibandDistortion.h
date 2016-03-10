@@ -23,11 +23,13 @@ public:
   void Reset();
   void OnParamChange(int paramIdx);
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
-  double fastAtan(double x);
   double ProcessDistortion(double sample, int distType);
-  double percentToFreq(double p);
   
-private:  
+private:
+  void smoothFilters();
+  double fastAtan(double x);
+  double percentToFreq(double p);
+
   Spect_FFT* sFFT;
   gFFTAnalyzer* gAnalyzer;
   gFFTFreqDraw* gFreqLines;
