@@ -18,7 +18,6 @@ enum EParams
   kMix3,
   kMix4,
   kOutputGain,
-  kAutoGainComp,
   kBand1Enable,
   kBand2Enable,
   kBand3Enable,
@@ -70,7 +69,7 @@ enum ELayout
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
-  mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false), mOversampling(2)
+  mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mOversampling(2)
 {
   TRACE;
   
@@ -92,20 +91,22 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   allpass3 = new CFxRbjFilter();
   allpass3->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
-  //Initialize Parameter Smoothers + RMS Level Followers
+  //Initialize Parameter Smoothers
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
   mDriveSmoother= new CParamSmooth*[4];
   mOutputSmoother= new CParamSmooth*[4];
   mMixSmoother= new CParamSmooth*[4];
-  mRMSDry= new RMSFollower*[4];
-  mRMSWet= new RMSFollower*[4];
+
+  mCrossoverSmoother1 = new CParamSmooth(7.0, GetSampleRate());
+  mCrossoverSmoother2 = new CParamSmooth(7.0, GetSampleRate());
+  mCrossoverSmoother3 = new CParamSmooth(7.0, GetSampleRate());
+
   
   for (int i=0; i<4; i++) {
     mDriveSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
     mMixSmoother[i]=new CParamSmooth(5.0,GetSampleRate());
-    mRMSDry[i]=new RMSFollower();
-    mRMSWet[i]=new RMSFollower;
+
   }
   
   //======================================================================================================
@@ -117,14 +118,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   //Initialize Parameters
   //
   //arguments are: name, defaultVal, minVal, maxVal, step, label
-  GetParam(kCrossoverFreq1)->InitDouble("Crossover 1: Freq", 112., 20., 20000., .0001, "Hz");
-  GetParam(kCrossoverFreq2)->InitDouble("Crossover 2: Freq", 637., 20., 20000., .0001, "Hz");
-  GetParam(kCrossoverFreq3)->InitDouble("Crossover 3: Freq", 3600., 20., 20000., .0001, "Hz");
   
-  
+  GetParam(kCrossoverFreq1)->InitDouble("Crossover 1: Freq", .25, 0., 1., .000001);
+  GetParam(kCrossoverFreq2)->InitDouble("Crossover 2: Freq", .5, 0., 1., .000001);
+  GetParam(kCrossoverFreq3)->InitDouble("Crossover 3: Freq", .75, 0., 1., .000001);
+
   GetParam(kInputGain)->InitDouble("Input Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
-  GetParam(kAutoGainComp)->InitBool("Auto Gain Compensation", false);
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   GetParam(kDistModeLinked)->InitBool("Link Distortion Modes", false);
@@ -138,10 +138,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix3)->InitDouble("Band 3: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix4)->InitDouble("Band 4: Mix", 100., 0., 100., 0.001, "%");
-  GetParam(kMix1)->SetShape(2.);
-  GetParam(kMix2)->SetShape(2.);
-  GetParam(kMix3)->SetShape(2.);
-  GetParam(kMix4)->SetShape(2.);
+
   
   
   GetParam(kBand1Enable)->InitBool("Band 1: Enable", true);
@@ -357,7 +354,6 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //Soft asymmetrical clipping
     if (distType==0) {
       double threshold = 0.8;
-      double drySample=sample;
       if(sample>threshold)
         sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
       else if(sample >1)
@@ -472,13 +468,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
             //Gain comp
             samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j]->process(-.9*mDrive[j]));
             
-            //Auto gain compensation
-            if (mAutoGainComp) {
-              RMSDry=mRMSDry[j]->getRMS(samplesFilteredDry[j]);
-              RMSWet=mRMSWet[j]->getRMS(samplesFilteredWet[j]);
-              samplesFilteredWet[j]*=RMSDry/RMSWet;
-            }
-            
+
             //Mix
             samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
             
@@ -548,10 +538,6 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       
     case kOutputGain:
       mOutputGain = GetParam(kOutputGain)->Value();
-      break;
-      
-    case kAutoGainComp:
-      mAutoGainComp=GetParam(kAutoGainComp)->Value();
       break;
       
     case kOutputClipping:
@@ -713,19 +699,19 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       break;
       
     case kCrossoverFreq1:
-      mCrossoverFreq1=GetParam(kCrossoverFreq1)->Value();
+      mCrossoverFreq1=percentToFreq(GetParam(kCrossoverFreq1)->Value());
       band1lp->setCutoff(mCrossoverFreq1);
       band2hp->setCutoff(mCrossoverFreq1);
       break;
       
     case kCrossoverFreq2:
-      mCrossoverFreq2=GetParam(kCrossoverFreq2)->Value();
+      mCrossoverFreq2=percentToFreq(GetParam(kCrossoverFreq2)->Value());
       band2lp->setCutoff(mCrossoverFreq2);
       band3hp->setCutoff(mCrossoverFreq2);
       break;
       
     case kCrossoverFreq3:
-      mCrossoverFreq3=GetParam(kCrossoverFreq3)->Value();
+      mCrossoverFreq3=percentToFreq(GetParam(kCrossoverFreq3)->Value());
       band3lp->setCutoff(mCrossoverFreq3);
       band4hp->setCutoff(mCrossoverFreq3);
       break;
@@ -733,6 +719,14 @@ void MultibandDistortion::OnParamChange(int paramIdx)
     default:
       break;
   }
+}
+
+double MultibandDistortion::percentToFreq(double p){
+  const double minFreq = 20;
+  const double maxFreq = 20000;
+  const double mF = 20000/20;
+  return minFreq * std::pow(mF, p);
+
 }
 
 double MultibandDistortion::fastAtan(double x){

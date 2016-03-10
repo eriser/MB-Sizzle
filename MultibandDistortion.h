@@ -25,7 +25,8 @@ public:
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
   double fastAtan(double x);
   double ProcessDistortion(double sample, int distType);
-
+  double percentToFreq(double p);
+  
 private:  
   Spect_FFT* sFFT;
   gFFTAnalyzer* gAnalyzer;
@@ -75,9 +76,6 @@ private:
   IColor TRANSP_ORANGE = IColor(255,245*.22,187*.22,0);
   
   
-  RMSFollower** mRMSDry;
-  RMSFollower** mRMSWet;
-
   LinkwitzRiley* band1lp;
   LinkwitzRiley* band2hp;
   LinkwitzRiley* band2lp;
@@ -117,7 +115,6 @@ private:
   bool mEnable[4];
   
   bool mDistModesLinked;
-  bool mAutoGainComp;
   bool mOutputClipping;
   bool mSpectBypass;
 
