@@ -24,7 +24,7 @@ public:
         calcFilter();
     };
     
-    ~LinkwitzRiley();
+    ~LinkwitzRiley(){};
     
     
     //  Process sample of audio

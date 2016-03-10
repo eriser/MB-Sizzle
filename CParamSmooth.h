@@ -13,7 +13,7 @@ class CParamSmooth
 public:
     CParamSmooth(float smoothingTimeInMs, float samplingRate);
 
-    ~CParamSmooth();
+    ~CParamSmooth(){};
                  
     double process(double in);
 

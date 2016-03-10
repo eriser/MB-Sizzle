@@ -340,7 +340,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   
 }
 
-MultibandDistortion::~MultibandDistortion() {}
+MultibandDistortion::~MultibandDistortion(){};
 
 
 double MultibandDistortion::ProcessDistortion(double sample, int distType)
@@ -444,9 +444,13 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       samplesFilteredDry[2]=band3hp->process(samplesFilteredDry[1],i);
       samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1],i);
       
-      for(int j=0; j<4; j++){
-        samplesFilteredWet[j]=samplesFilteredDry[j];
-      }
+//      samplesFilteredDry[0] = band1lp->process(sample, i);
+//      samplesFilteredDry[1] = band2hp->process(sample, i);
+//      samplesFilteredDry[1] = band2lp->process(sample, i);
+//      samplesFilteredDry[2] = band3hp->process(sample, i);
+//      samplesFilteredDry[2] = band3lp->process(sample, i);
+//      samplesFilteredDry[3] = band4hp->process(sample, i);
+//      
       
       
       //Loop through bands, process samples
@@ -455,6 +459,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
           samplesFilteredWet[j]=0;
         }
         else {
+          samplesFilteredWet[j]=samplesFilteredDry[j];
           if (mEnable[j]) {
             samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
             
