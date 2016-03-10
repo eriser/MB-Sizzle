@@ -26,6 +26,14 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		4C01A59E1C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A59F1C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A5A01C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A5A11C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A5A21C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A5A31C914BF7006F2664 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C01A59C1C914BF7006F2664 /* besselfilter.cpp */; };
+		4C01A5A41C914BF7006F2664 /* besselfilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C01A59D1C914BF7006F2664 /* besselfilter.h */; };
+		4C01A5A51C914BF7006F2664 /* besselfilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C01A59D1C914BF7006F2664 /* besselfilter.h */; };
 		4C0370D81C850B6D00C33BB8 /* CParamSmooth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0370D01C850B6D00C33BB8 /* CParamSmooth.cpp */; };
 		4C0370D91C850B6D00C33BB8 /* CParamSmooth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0370D01C850B6D00C33BB8 /* CParamSmooth.cpp */; };
 		4C0370DA1C850B6D00C33BB8 /* CParamSmooth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C0370D01C850B6D00C33BB8 /* CParamSmooth.cpp */; };
@@ -512,6 +520,8 @@
 		089C1672FE841209C02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		089C167FFE841241C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		4C01A59C1C914BF7006F2664 /* besselfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = besselfilter.cpp; sourceTree = "<group>"; };
+		4C01A59D1C914BF7006F2664 /* besselfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = besselfilter.h; sourceTree = "<group>"; };
 		4C0370D01C850B6D00C33BB8 /* CParamSmooth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CParamSmooth.cpp; sourceTree = "<group>"; };
 		4C0370D11C850B6D00C33BB8 /* CParamSmooth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CParamSmooth.h; sourceTree = "<group>"; };
 		4C0370D21C850B6D00C33BB8 /* DSPUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPUtilities.cpp; sourceTree = "<group>"; };
@@ -836,6 +846,8 @@
 				4C33ECCB1C91396B00356673 /* FilterButterworth24db.h */,
 				4C33ECCC1C9139AE00356673 /* FilterButterworth24db.cpp */,
 				4CB19A881C8F776400A12761 /* RMS.h */,
+				4C01A59C1C914BF7006F2664 /* besselfilter.cpp */,
+				4C01A59D1C914BF7006F2664 /* besselfilter.h */,
 				4C0370CF1C850B3800C33BB8 /* Helpful Utilities */,
 				089C167CFE841241C02AAC07 /* Resources */,
 				32C88E010371C26100C91783 /* Other Sources */,
@@ -1498,6 +1510,7 @@
 				4F78D95B13B63BA50032E0F3 /* IParam.h in Headers */,
 				4F78D95D13B63BA50032E0F3 /* IMidiQueue.h in Headers */,
 				4F78D95F13B63BA50032E0F3 /* IGraphicsCarbon.h in Headers */,
+				4C01A5A51C914BF7006F2664 /* besselfilter.h in Headers */,
 				4CB19A781C8E992100A12761 /* ICrossoverControl.h in Headers */,
 				4F78D96013B63BA50032E0F3 /* IGraphics.h in Headers */,
 				4C0370F71C850B6D00C33BB8 /* VAStateVariableFilter.h in Headers */,
@@ -1534,6 +1547,7 @@
 				4F78DA9113B640050032E0F3 /* swell-internal.h in Headers */,
 				4F78DA9213B640050032E0F3 /* swell-types.h in Headers */,
 				4F78DA9313B640050032E0F3 /* aeffect.h in Headers */,
+				4C01A5A41C914BF7006F2664 /* besselfilter.h in Headers */,
 				4F78DA9413B640050032E0F3 /* aeffectx.h in Headers */,
 				4F78DA9513B640050032E0F3 /* IPlug_include_in_plug_hdr.h in Headers */,
 				4F78DA9613B640050032E0F3 /* IPlug_include_in_plug_src.h in Headers */,
@@ -1914,6 +1928,7 @@
 				4F78D9BB13B63BA50032E0F3 /* IPlugBase.cpp in Sources */,
 				4F78D9BC13B63BA50032E0F3 /* IPlugStructs.cpp in Sources */,
 				4F78D9BD13B63BA50032E0F3 /* Hosts.cpp in Sources */,
+				4C01A59F1C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4F78D9BF13B63BA50032E0F3 /* IGraphicsMac.mm in Sources */,
 				4C0370E91C850B6D00C33BB8 /* PeakFollower.cpp in Sources */,
 				4F78D9C013B63BA50032E0F3 /* IGraphics.cpp in Sources */,
@@ -1958,6 +1973,7 @@
 				4F78DA0A13B63CD90032E0F3 /* IPlugAU_ViewFactory.mm in Sources */,
 				4C0370DB1C850B6D00C33BB8 /* CParamSmooth.cpp in Sources */,
 				4FDA440813F3E4F2000B4551 /* IBitmapMonoText.cpp in Sources */,
+				4C01A5A11C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4C0370F31C850B6D00C33BB8 /* VAStateVariableFilter.cpp in Sources */,
 				4F296BDA1678E6C800C0F5C2 /* dfx-au-utilities.c in Sources */,
 			);
@@ -1982,6 +1998,7 @@
 				4F7F5C5913E95EC8002918FD /* IPopupMenu.cpp in Sources */,
 				4F7F5C5A13E95EC8002918FD /* IParam.cpp in Sources */,
 				4F7F5C5B13E95EC8002918FD /* IControl.cpp in Sources */,
+				4C01A5A21C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4F7F5C7113E95FB2002918FD /* IPlugRTAS.cpp in Sources */,
 				4F7F5CAD13E9607A002918FD /* digicode1.cpp in Sources */,
 				4C0370DC1C850B6D00C33BB8 /* CParamSmooth.cpp in Sources */,
@@ -2026,6 +2043,7 @@
 				4F9828C9140A9EB700F3FCC1 /* vstaudioeffect.cpp in Sources */,
 				4CED85941C8E056C00B832EF /* fft.c in Sources */,
 				4C0370F21C850B6D00C33BB8 /* VAStateVariableFilter.cpp in Sources */,
+				4C01A5A01C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4F9828CA140A9EB700F3FCC1 /* vstbus.cpp in Sources */,
 				4F9828CB140A9EB700F3FCC1 /* vstcomponent.cpp in Sources */,
 				4F9828CC140A9EB700F3FCC1 /* vstcomponentbase.cpp in Sources */,
@@ -2061,6 +2079,7 @@
 				4FB600221567CB0A0020189A /* IPopupMenu.cpp in Sources */,
 				4FB600231567CB0A0020189A /* IParam.cpp in Sources */,
 				4C0370E51C850B6D00C33BB8 /* DSPUtilities.cpp in Sources */,
+				4C01A5A31C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4FB600241567CB0A0020189A /* IControl.cpp in Sources */,
 				4FB600251567CB0A0020189A /* IBitmapMonoText.cpp in Sources */,
 				4C0370F51C850B6D00C33BB8 /* VAStateVariableFilter.cpp in Sources */,
@@ -2093,6 +2112,7 @@
 				4FD16D4713B635C8001D0217 /* swellappmain.mm in Sources */,
 				4F78D8C413B63A700032E0F3 /* RtAudio.cpp in Sources */,
 				4F78D8C513B63A700032E0F3 /* RtMidi.cpp in Sources */,
+				4C01A59E1C914BF7006F2664 /* besselfilter.cpp in Sources */,
 				4F78D90A13B63BA50032E0F3 /* IPlugStandalone.cpp in Sources */,
 				4F78D90B13B63BA50032E0F3 /* IPlugBase.cpp in Sources */,
 				4F78D90C13B63BA50032E0F3 /* IPlugStructs.cpp in Sources */,

@@ -8,6 +8,9 @@
 #include "ICrossoverControl.h"
 #include "RMS.h"
 #include "LinkwitzRiley.h"
+#define WDL_BESSEL_FILTER_ORDER 8
+#define WDL_BESSEL_DENORMAL_AGGRESSIVE
+#include "../../WDL/besselfilter.h"
 
 class MultibandDistortion : public IPlug
 {

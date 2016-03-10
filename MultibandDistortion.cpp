@@ -429,7 +429,6 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
 
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
-   
       
       samplesFilteredDry[0]=band1lp->process(sample);
       samplesFilteredDry[1]=band2hp->process(sample);
