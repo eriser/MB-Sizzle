@@ -1918,7 +1918,10 @@
 				4F78D9BB13B63BA50032E0F3 /* IPlugBase.cpp in Sources */,
 				4F78D9BC13B63BA50032E0F3 /* IPlugStructs.cpp in Sources */,
 				4F78D9BD13B63BA50032E0F3 /* Hosts.cpp in Sources */,
+<<<<<<< HEAD
 				4C4EEA3E1C9155A500E455AE /* Biquad.cpp in Sources */,
+=======
+>>>>>>> parent of d3e9beb... Back to LinkwitzRiley
 				4F78D9BF13B63BA50032E0F3 /* IGraphicsMac.mm in Sources */,
 				4C0370E91C850B6D00C33BB8 /* PeakFollower.cpp in Sources */,
 				4F78D9C013B63BA50032E0F3 /* IGraphics.cpp in Sources */,
