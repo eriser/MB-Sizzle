@@ -74,6 +74,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
 {
   TRACE;
 
+<<<<<<< HEAD
   
   mAntiAlias.Calc(0.5 / (double)mOversampling);
   mUpsample.Reset();
@@ -86,6 +87,14 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   band3hp = new LinkwitzRiley(sr, Highpass, 637);
   band3lp = new LinkwitzRiley(sr, Lowpass, 3600);
   band4hp = new LinkwitzRiley(sr, Highpass, 3600);
+=======
+  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
+  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
+  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
+  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
+  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
+  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
+>>>>>>> parent of 970b05a... Butterworth
 
   
   //Initialize Parameter Smoothers + RMS Level Followers
