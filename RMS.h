@@ -19,18 +19,18 @@ public:
     
     double getRMS(double sample){
         double RMSLevel;
-        for (int i=0; i<498; i++) {
+        for (int i=0; i<98; i++) {
             buffer[i]=buffer[i+1];
         }
-        buffer[499]=sample*sample;
-        sum+=buffer[499]-buffer[0];
+        buffer[99]=sample*sample;
+        sum+=buffer[99]-buffer[0];
         RMSLevel = sum/10;
         return sqrt(RMSLevel);
     }
     
 private:
     double sum;
-    double buffer[500];
+    double buffer[100];
 };
 
 #endif /* RMS_h */

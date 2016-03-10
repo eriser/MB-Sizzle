@@ -8,6 +8,7 @@
 #include "ICrossoverControl.h"
 #include "RMS.h"
 #include "LinkwitzRiley.h"
+#include "CFxRbjFilter.h"
 
 class MultibandDistortion : public IPlug
 {
@@ -75,7 +76,12 @@ private:
   LinkwitzRiley* band3hp;
   LinkwitzRiley* band3lp;
   LinkwitzRiley* band4hp;
+  
+  CFxRbjFilter* allpass1;
+  CFxRbjFilter* allpass2;
+  CFxRbjFilter* allpass3;
 
+  
   double samplesFilteredDry[4];
   double samplesFilteredWet[4];
   double chebyshev[8];

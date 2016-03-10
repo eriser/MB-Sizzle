@@ -21,28 +21,32 @@ public:
         filterType = type;
         fc = cutoffFreq;
         for (int i=0; i<4; i++) {
-            buffX[i]=0;
-            buffY[i]=0;
+            buffX[0][i]=0;
+            buffX[1][i]=0;
+            buffY[0][i]=0;
+            buffY[1][i]=0;
         }
         
         calcFilter();
     };
     
+    ~LinkwitzRiley();
+    
     
     //  Process sample of audio
-    double process(double sample){
+    double process(double sample, int channel){
         double tempx = sample;
-        double tempy = a0*tempx+a1*buffX[0]+a2*buffX[1]+a3*buffX[2]+a4*buffX[3]-b1*buffY[0]-b2*buffY[1]-b3*buffY[2]-b4*buffY[3];
+        double tempy = a0*tempx+a1*buffX[channel][0]+a2*buffX[channel][1]+a3*buffX[channel][2]+a4*buffX[channel][3]-b1*buffY[channel][0]-b2*buffY[channel][1]-b3*buffY[channel][2]-b4*buffY[channel][3];
         
-        buffX[3]=buffX[2];
-        buffX[2]=buffX[1];
-        buffX[1]=buffX[0];
-        buffX[0]=tempx;
+        buffX[channel][3]=buffX[channel][2];
+        buffX[channel][2]=buffX[channel][1];
+        buffX[channel][1]=buffX[channel][0];
+        buffX[channel][0]=tempx;
         
-        buffY[3]=buffY[2];
-        buffY[2]=buffY[1];
-        buffY[1]=buffY[0];
-        buffY[0]=tempy;
+        buffY[channel][3]=buffY[channel][2];
+        buffY[channel][2]=buffY[channel][1];
+        buffY[channel][1]=buffY[channel][0];
+        buffY[channel][0]=tempy;
         
         return tempy;
     }
@@ -100,8 +104,8 @@ private:
     double a0, a1, a2, a3, a4, b1, b2, b3, b4;
     
     //  Buffer
-    double buffX[4];
-    double buffY[4];
+    double buffX[2][4];
+    double buffY[2][4];
 };
 
 #endif /* LinkwitzRiley_h */

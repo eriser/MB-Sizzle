@@ -3,13 +3,6 @@
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/IPlugBase.o
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/IPlugStructs.o
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/Hosts.o
-<<<<<<< HEAD
-<<<<<<< HEAD
-/Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/Biquad.o
-=======
->>>>>>> parent of 24b12e1... Revert "Revert "Butterworth""
-=======
->>>>>>> parent of d3e9beb... Back to LinkwitzRiley
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/IGraphicsMac.o
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/PeakFollower.o
 /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/build-mac/MultibandDistortion.build/Debug/VST2.build/Objects-normal/x86_64/IGraphics.o

@@ -80,7 +80,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
   band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
   band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
-
+  
+  allpass1 = new CFxRbjFilter();
+  allpass1->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
+  allpass2 = new CFxRbjFilter();
+  allpass2->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
+  allpass3 = new CFxRbjFilter();
+  allpass3->calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
   //Initialize Parameter Smoothers + RMS Level Followers
   mInputGainSmoother=new CParamSmooth(5.0,GetSampleRate());
@@ -121,10 +127,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   GetParam(kDistModeLinked)->InitBool("Link Distortion Modes", false);
   
-  GetParam(kDrive1)->InitDouble("Band 1: Drive", 0., 0., 10., 0.0001, "dB");
-  GetParam(kDrive2)->InitDouble("Band 2: Drive", 0., 0., 10., 0.0001, "dB");
-  GetParam(kDrive3)->InitDouble("Band 3: Drive", 0., 0., 10., 0.0001, "dB");
-  GetParam(kDrive4)->InitDouble("Band 4: Drive", 0., 0., 10., 0.0001, "dB");
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 36., 0.0001, "dB");
 
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
@@ -153,7 +159,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   
   GetParam(kDistMode1)->InitEnum("Band 1: Mode", 0, kNumModes);
-  GetParam(kDistMode1)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode1)->SetDisplayText(0, "Excite");
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
@@ -161,7 +167,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode1)->SetDisplayText(5, "Tube");
 
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
-  GetParam(kDistMode2)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode2)->SetDisplayText(0, "Excite");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
@@ -169,7 +175,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode2)->SetDisplayText(5, "Tube");
 
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
-  GetParam(kDistMode3)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode3)->SetDisplayText(0, "Excite");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
@@ -177,7 +183,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   GetParam(kDistMode3)->SetDisplayText(5, "Tube");
 
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
-  GetParam(kDistMode4)->SetDisplayText(0, "Soft");
+  GetParam(kDistMode4)->SetDisplayText(0, "Excite");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
@@ -295,14 +301,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
   
   IText lFont(12, &COLOR_WHITE, fontName, IText::kStyleNormal, IText::kAlignCenter, 0, texttype);
   // adding the vertical frequency lines
-  gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
+  //gFreqLines = new gFFTFreqDraw(this, iView, LIGHT_GRAY, &lFont);
 
   
   //pGraphics->AttachControl((IControl*)gFreqLines);
   
 
-  //Vertical lines
-  
   
   //setting the min/max freq for fft display and freq lines
   const double maxF = 20000.;
@@ -346,17 +350,19 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   //Soft asymmetrical clipping
   //algorithm by Bram de Jong, from musicdsp.org archives
   if (distType==0) {
-    double threshold = 0.9;
-    
+    double threshold = 0.8;
+    double drySample=sample;
     if(sample>threshold)
       sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
     else if(sample >1)
-      sample = (sample + 1)/2;
+      //sample = (sample + 1)/2;
+      sample=1;
+    sample=sample*.9+drySample*.1;
   }
   
   //arctan waveshaper
   else if(distType==1){
-    sample =  fastAtan(sample * 3);
+    sample =  1/3. * fastAtan(sample * 3);
   }
   
   //Sine shaper
@@ -388,25 +394,14 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   
   //First 5 order chebyshev polynomials
   else if (distType==4){
-    //sample = 4*pow(sample,3)-3*sample + 2*sample*sample  + sample;
-    
-    double chebyshev[7];
-    chebyshev[0] = sample;
-    chebyshev[1] = 2 * sample * sample - 1;
-    chebyshev[2] = 4 * pow(sample, 3) - 3 * sample;
-    chebyshev[3] = 8 * pow(sample, 4) - 8 * sample * sample + 1;
-    chebyshev[4] = 16 * pow(sample, 5) - 20 * pow(sample,3) - 7 * sample;
-    for(int i=1; i<mPolynomials; i++){
-      sample+=chebyshev[i];
-      sample*=.5;
-    }
+    sample=tanh(sample);
   }
   
   //tube emulation
   else if (distType==5){
-    sample = sin(sample) + pow(std::abs(sin(sample)), 2) - .1;
-    sample = sin(sample) + pow(std::abs(sin(sample)), 4) - .1;
-    sample = sin(sample) + pow(std::abs(sin(sample)), 8) - .1;
+    sample = sin(sample) + pow(std::abs(sin(sample)), 2);
+    sample = sin(sample) + pow(std::abs(sin(sample)), 4);
+    sample = sin(sample) + pow(std::abs(sin(sample)), 8);
 
   }
   return sample;
@@ -426,18 +421,21 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
     
     for (int s = 0; s < nFrames; ++s, ++input, ++output) {
       double sample = *input;
-
+      
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
    
       
-      samplesFilteredDry[0]=band1lp->process(sample);
-      samplesFilteredDry[1]=band2hp->process(sample);
-      samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1]);
-      samplesFilteredDry[2]=band3hp->process(sample);
-      samplesFilteredDry[2]=band3lp->process(samplesFilteredDry[2]);
-      samplesFilteredDry[3]=band4hp->process(sample);
-
+      samplesFilteredDry[0]=band1lp->process(sample,i);
+   //   samplesFilteredDry[0]=allpass1->process(samplesFilteredDry[0]);
+     // samplesFilteredDry[0]=allpass2->process(samplesFilteredDry[0]);
+      samplesFilteredDry[1]=band2hp->process(sample, i);
+      samplesFilteredDry[3]=band4hp->process(samplesFilteredDry[1], i);
+      //samplesFilteredDry[3]=allpass3->process(samplesFilteredDry[3]);
+      samplesFilteredDry[1]=band3lp->process(samplesFilteredDry[1],i);
+      samplesFilteredDry[2]=band3hp->process(samplesFilteredDry[1],i);
+      samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1],i);
+      
       //Loop through bands, process samples
       for (int j=0; j<4; j++) {
         samplesFilteredWet[j]=samplesFilteredDry[j];
@@ -455,8 +453,8 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
             }
             
-            //Mix
-            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+            //Gain comp
+            samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j]->process(-.9*mDrive[j]));
             
             //Auto gain compensation
             if (mAutoGainComp) {
@@ -464,6 +462,11 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               RMSWet=mRMSWet[j]->getRMS(samplesFilteredWet[j]);
               samplesFilteredWet[j]*=RMSDry/RMSWet;
             }
+            
+            //Mix
+            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+            
+
           }
         }
       }
