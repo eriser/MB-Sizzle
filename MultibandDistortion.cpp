@@ -70,22 +70,16 @@ enum ELayout
 };
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo)
-  :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false), mOversampling(8)
+  :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mAutoGainComp(false)
 {
   TRACE;
 
-  
-  mAntiAlias.Calc(0.5 / (double)mOversampling);
-  mUpsample.Reset();
-  mDownsample.Reset();
-  
-  double sr = GetSampleRate()*8;
-  band1lp = new LinkwitzRiley(sr, Lowpass, 112);
-  band2hp = new LinkwitzRiley(sr, Highpass, 112);
-  band2lp = new LinkwitzRiley(sr, Lowpass, 637);
-  band3hp = new LinkwitzRiley(sr, Highpass, 637);
-  band3lp = new LinkwitzRiley(sr, Lowpass, 3600);
-  band4hp = new LinkwitzRiley(sr, Highpass, 3600);
+  band1lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 112);
+  band2hp = new LinkwitzRiley(GetSampleRate(), Highpass, 112);
+  band2lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 637);
+  band3hp = new LinkwitzRiley(GetSampleRate(), Highpass, 637);
+  band3lp = new LinkwitzRiley(GetSampleRate(), Lowpass, 3600);
+  band4hp = new LinkwitzRiley(GetSampleRate(), Highpass, 3600);
 
   
   //Initialize Parameter Smoothers + RMS Level Followers
@@ -436,80 +430,65 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother->process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
       
-      for (int o=0; o<mOversampling; o++) {
-        // Upsample
-        if (o > 0) sample = 0.;
-        mUpsample.Process(sample, mAntiAlias.Coeffs());
-        sample = (double)mOversampling * mUpsample.Output();
-        
-        
-        samplesFilteredDry[0]=band1lp->process(sample);
-        samplesFilteredDry[1]=band2hp->process(sample);
-        samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1]);
-        samplesFilteredDry[2]=band3hp->process(sample);
-        samplesFilteredDry[2]=band3lp->process(samplesFilteredDry[2]);
-        samplesFilteredDry[3]=band4hp->process(sample);
-        
-        //Loop through bands, process samples
-        for (int j=0; j<4; j++) {
-          samplesFilteredWet[j]=samplesFilteredDry[j];
-          if (mMute[j]) {
-            samplesFilteredWet[j]=0;
-          }
-          else {
-            if (mEnable[j]) {
-              samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
-              
-              if(mDistModesLinked){
-                samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[0]);
-              }
-              else{
-                samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
-              }
-              
-              //Mix
-              samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
-              
-              //Auto gain compensation
-              if (mAutoGainComp) {
-                RMSDry=mRMSDry[j]->getRMS(samplesFilteredDry[j]);
-                RMSWet=mRMSWet[j]->getRMS(samplesFilteredWet[j]);
-                samplesFilteredWet[j]*=RMSDry/RMSWet;
-              }
+      samplesFilteredDry[0]=band1lp->process(sample);
+      samplesFilteredDry[1]=band2hp->process(sample);
+      samplesFilteredDry[1]=band2lp->process(samplesFilteredDry[1]);
+      samplesFilteredDry[2]=band3hp->process(sample);
+      samplesFilteredDry[2]=band3lp->process(samplesFilteredDry[2]);
+      samplesFilteredDry[3]=band4hp->process(sample);
+
+      //Loop through bands, process samples
+      for (int j=0; j<4; j++) {
+        samplesFilteredWet[j]=samplesFilteredDry[j];
+        if (mMute[j]) {
+          samplesFilteredWet[j]=0;
+        }
+        else {
+          if (mEnable[j]) {
+            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j]->process(mDrive[j]));
+            
+            if(mDistModesLinked){
+              samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[0]);
+            }
+            else{
+              samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
+            }
+            
+            //Mix
+            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+            
+            //Auto gain compensation
+            if (mAutoGainComp) {
+              RMSDry=mRMSDry[j]->getRMS(samplesFilteredDry[j]);
+              RMSWet=mRMSWet[j]->getRMS(samplesFilteredWet[j]);
+              samplesFilteredWet[j]*=RMSDry/RMSWet;
             }
           }
-          
-
         }
-        
-        
-        //Sum output
-        sample=0;
-        for(int j=0; j<4; j++){
-          if (mSolo[j]) {
-            sample=samplesFilteredWet[j];
-            break;
-          }
-          else{
-            sample+=samplesFilteredWet[j];
-          }
+      }
+  
+      
+      //Sum output
+      sample=0;
+      for(int j=0; j<4; j++){
+        if (mSolo[j]) {
+          sample=samplesFilteredWet[j];
+          break;
         }
-        
-        //Clipping
-        if(mOutputClipping){
-          if (sample>1) {
-            sample = DBToAmp(-0.1);
-          }
-          else if (sample<-1) {
-            sample = -1*DBToAmp(-0.1);
-          }
+        else{
+          sample+=samplesFilteredWet[j];
         }
-        // Downsample
-        mDownsample.Process(sample, mAntiAlias.Coeffs());
-        if (o == 0) sample = mDownsample.Output();
       }
       
-      
+      //Clipping
+      if(mOutputClipping){
+        if (sample>1) {
+          sample = DBToAmp(-0.1);
+        }
+        else if (sample<-1) {
+          sample = -1*DBToAmp(-0.1);
+        }
+      }
       
       if(mSpectBypass) sFFT->SendInput(sample);
 
