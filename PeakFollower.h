@@ -1,6 +1,6 @@
 //
 //  PeakFollower.hpp
-//  GritDistortion
+//  
 //
 //
 
@@ -9,11 +9,15 @@
 
 class PeakFollower {
 public:
-    PeakFollower();
+    PeakFollower(double sampleRate);
     ~PeakFollower();
-    float process(double input, double sampleRate);
-    float process2(double input, double sampleRate);
+    float processBand1(double input);
+    float processBand2(double input);
+    float processBand3(double input);
+    float processBand4(double input);
 
+protected:
+    float scalar;
 };
 
 

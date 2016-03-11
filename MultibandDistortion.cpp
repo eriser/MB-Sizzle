@@ -64,6 +64,7 @@ enum ELayout
   kSpectBypassX = 27,
   kSpectBypassY = 22,
   
+  kLevelMeterFrames=31,
   kSliderFrames=33
 };
 
@@ -91,8 +92,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   allpass3 =  CFxRbjFilter();
   allpass3.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
+  mPeakFollower = new PeakFollower(GetSampleRate());
 
-  
   for (int i=0; i<4; i++) {
     mDriveSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i] = CParamSmooth(5.0,GetSampleRate());
@@ -186,7 +187,18 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IBitmap solo = pGraphics->LoadIBitmap(SOLO_ID, SOLO_FN,2);
   IBitmap mute = pGraphics->LoadIBitmap(MUTE_ID, MUTE_FN,2);
   IBitmap link = pGraphics->LoadIBitmap(LINK_ID, LINK_FN,2);
+  IBitmap levelMeter = pGraphics->LoadIBitmap(LEVELMETER_ID, LEVELMETER_FN, kLevelMeterFrames);
   
+  
+  //Level Meters
+  mBand1LevelMeter = new IBitmapControl(this, kDrive1X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mBand1LevelMeter);
+  mBand2LevelMeter = new IBitmapControl(this, kDrive2X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mBand2LevelMeter);
+  mBand3LevelMeter = new IBitmapControl(this, kDrive3X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mBand3LevelMeter);
+  mBand4LevelMeter = new IBitmapControl(this, kDrive4X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mBand4LevelMeter);
   
   //Mode Link control
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kDistModeLinked, &link));
@@ -451,6 +463,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         if (mMute[j]||WDL_DENORMAL_OR_ZERO_DOUBLE_AGGRESSIVE(&samplesFilteredDry[j])) {
           samplesFilteredWet[j]=0;
         }
+
         else {
           samplesFilteredWet[j]=samplesFilteredDry[j];
           if (mEnable[j]) {
@@ -473,6 +486,13 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
             
           }
         }
+      }
+      
+      if (GetGUI()) {
+        mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
+        mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
+        mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
+        mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
       }
       
       //Sum output

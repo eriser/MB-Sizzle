@@ -70,6 +70,12 @@
 		4C33ECD01C9139AE00356673 /* FilterButterworth24db.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C33ECCC1C9139AE00356673 /* FilterButterworth24db.cpp */; };
 		4C3DCC901C915A7B005CE3B6 /* CFxRbjFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C3DCC8F1C915A7B005CE3B6 /* CFxRbjFilter.h */; };
 		4C3DCC911C915A7B005CE3B6 /* CFxRbjFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C3DCC8F1C915A7B005CE3B6 /* CFxRbjFilter.h */; };
+		4C57C8BB1C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
+		4C57C8BC1C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
+		4C57C8BD1C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
+		4C57C8BE1C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
+		4C57C8BF1C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
+		4C57C8C01C9347E800439254 /* LevelMeter.png in Resources */ = {isa = PBXBuildFile; fileRef = 4C57C8BA1C9347E800439254 /* LevelMeter.png */; };
 		4CA0CD8F1C920ABF0049DED5 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CA0CD8D1C920ABF0049DED5 /* besselfilter.cpp */; };
 		4CA0CD901C920ABF0049DED5 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CA0CD8D1C920ABF0049DED5 /* besselfilter.cpp */; };
 		4CA0CD911C920ABF0049DED5 /* besselfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4CA0CD8D1C920ABF0049DED5 /* besselfilter.cpp */; };
@@ -533,6 +539,7 @@
 		4C33ECCB1C91396B00356673 /* FilterButterworth24db.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FilterButterworth24db.h; sourceTree = "<group>"; };
 		4C33ECCC1C9139AE00356673 /* FilterButterworth24db.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FilterButterworth24db.cpp; sourceTree = "<group>"; };
 		4C3DCC8F1C915A7B005CE3B6 /* CFxRbjFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CFxRbjFilter.h; sourceTree = "<group>"; };
+		4C57C8BA1C9347E800439254 /* LevelMeter.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = LevelMeter.png; path = resources/img/LevelMeter.png; sourceTree = "<group>"; };
 		4CA0CD8D1C920ABF0049DED5 /* besselfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = besselfilter.cpp; sourceTree = "<group>"; };
 		4CA0CD8E1C920ABF0049DED5 /* besselfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = besselfilter.h; sourceTree = "<group>"; };
 		4CB19A5B1C8E691400A12761 /* Bypass.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Bypass.png; path = resources/img/Bypass.png; sourceTree = "<group>"; };
@@ -1389,6 +1396,7 @@
 		4FD16A0213B6303B001D0217 /* img */ = {
 			isa = PBXGroup;
 			children = (
+				4C57C8BA1C9347E800439254 /* LevelMeter.png */,
 				4C17DA9B1C8FDA79001C1C7F /* Link.png */,
 				4CB19A7E1C8F474700A12761 /* Mute.png */,
 				4CB19A7F1C8F474700A12761 /* Solo.png */,
@@ -1816,6 +1824,7 @@
 				4CB19A7B1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859B1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A851C8F474700A12761 /* Solo.png in Resources */,
+				4C57C8BC1C9347E800439254 /* LevelMeter.png in Resources */,
 				4C17DA9D1C8FDA79001C1C7F /* Link.png in Resources */,
 				4CB19A811C8F474700A12761 /* Mute.png in Resources */,
 				4CB19A5D1C8E691400A12761 /* Bypass.png in Resources */,
@@ -1829,6 +1838,7 @@
 				4CB19A7D1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859D1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A871C8F474700A12761 /* Solo.png in Resources */,
+				4C57C8BE1C9347E800439254 /* LevelMeter.png in Resources */,
 				4C17DA9F1C8FDA7A001C1C7F /* Link.png in Resources */,
 				4CB19A831C8F474700A12761 /* Mute.png in Resources */,
 				4CB19A5F1C8E691400A12761 /* Bypass.png in Resources */,
@@ -1841,6 +1851,7 @@
 			files = (
 				4C17DAA01C8FDA7A001C1C7F /* Link.png in Resources */,
 				4CED859E1C8E0A6F00B832EF /* Slider.png in Resources */,
+				4C57C8BF1C9347E800439254 /* LevelMeter.png in Resources */,
 				4CB19A601C8E691400A12761 /* Bypass.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1852,6 +1863,7 @@
 				4CB19A7C1C8EAAF200A12761 /* BypassSmall.png in Resources */,
 				4CED859C1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4CB19A861C8F474700A12761 /* Solo.png in Resources */,
+				4C57C8BD1C9347E800439254 /* LevelMeter.png in Resources */,
 				4C17DA9E1C8FDA79001C1C7F /* Link.png in Resources */,
 				4CB19A821C8F474700A12761 /* Mute.png in Resources */,
 				4CB19A5E1C8E691400A12761 /* Bypass.png in Resources */,
@@ -1862,6 +1874,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C57C8C01C9347E800439254 /* LevelMeter.png in Resources */,
 				4CB19A611C8E691400A12761 /* Bypass.png in Resources */,
 				4C17DAA11C8FDA7A001C1C7F /* Link.png in Resources */,
 			);
@@ -1873,6 +1886,7 @@
 			files = (
 				4C17DA9C1C8FDA79001C1C7F /* Link.png in Resources */,
 				4CB19A841C8F474700A12761 /* Solo.png in Resources */,
+				4C57C8BB1C9347E800439254 /* LevelMeter.png in Resources */,
 				4CED859A1C8E0A6F00B832EF /* Slider.png in Resources */,
 				4F78D88613B6382B0032E0F3 /* MultibandDistortion.icns in Resources */,
 				4F78D89913B639100032E0F3 /* InfoPlist.strings in Resources */,
