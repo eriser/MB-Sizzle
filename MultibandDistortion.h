@@ -9,6 +9,7 @@
 #include "RMS.h"
 #include "LinkwitzRiley.h"
 #include "CFxRbjFilter.h"
+#include "PeakFollower.h"
 
 #define WDL_BESSEL_FILTER_ORDER 8
 #define WDL_BESSEL_DENORMAL_AGGRESSIVE
@@ -63,9 +64,33 @@ private:
   ISwitchControl* mMuteControl3;
   ISwitchControl* mMuteControl4;
   
+  ISwitchControl* mBypassControl1;
+  ISwitchControl* mBypassControl2;
+  ISwitchControl* mBypassControl3;
+  ISwitchControl* mBypassControl4;
+  
   IPopUpMenuControl* mDistMode2;
   IPopUpMenuControl* mDistMode3;
   IPopUpMenuControl* mDistMode4;
+
+  IBitmapControl* mBand1LevelMeter;
+  IBitmapControl* mBand2LevelMeter;
+  IBitmapControl* mBand3LevelMeter;
+  IBitmapControl* mBand4LevelMeter;
+
+  IKnobMultiControl* mDriveControl1;
+  IKnobMultiControl* mDriveControl2;
+  IKnobMultiControl* mDriveControl3;
+  IKnobMultiControl* mDriveControl4;
+  
+  IKnobMultiControl* mMixControl1;
+  IKnobMultiControl* mMixControl2;
+  IKnobMultiControl* mMixControl3;
+  IKnobMultiControl* mMixControl4;
+  
+  ICrossoverControl* mCrossoverControl;
+  
+  PeakFollower* mPeakFollower;
 
   
   //Set Colors
@@ -116,7 +141,7 @@ private:
   bool mSolo[4];
   bool mEnable[4];
   
-  bool mDistModesLinked;
+  bool mControlsLinked;
   bool mOutputClipping;
   bool mSpectBypass;
 

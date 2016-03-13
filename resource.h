@@ -60,6 +60,7 @@ instrument determined by PLUG _IS _INST
 #define SOLO_ID 104
 #define MUTE_ID 105
 #define LINK_ID 106
+#define LEVELMETER_ID 107
 
 // Image resource locations for this plug.
 #define SLIDER_FN "resources/img/Slider.png"
@@ -68,6 +69,7 @@ instrument determined by PLUG _IS _INST
 #define SOLO_FN "resources/img/Solo.png"
 #define MUTE_FN "resources/img/Mute.png"
 #define LINK_FN "resources/img/Link.png"
+#define LEVELMETER_FN "resources/img/LevelMeter.png"
 
 // GUI default dimensions
 #define GUI_WIDTH 460
