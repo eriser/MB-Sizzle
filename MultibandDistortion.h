@@ -124,7 +124,9 @@ private:
   double mOutputGain;
   double RMSDry, RMSWet;
 
-  
+  RMSFollower rmsDry[4];
+  RMSFollower rmsWet[4];
+
   double mCrossoverFreq1;
   double mCrossoverFreq2;
   double mCrossoverFreq3;

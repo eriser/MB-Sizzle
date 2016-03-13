@@ -13,24 +13,32 @@ class RMSFollower
 public:
     RMSFollower(){
         sum=0;
+        buffer = new double[1000];
+        for (int i=0; i<1000; i++) {
+            buffer[i]=0;
+        }
     }
     
-    ~RMSFollower();
+    ~RMSFollower(){
+        delete [] buffer;
+    }
     
-    double getRMS(double sample){
+    double getRMS(double sample, int channel){
         double RMSLevel;
-        for (int i=0; i<98; i++) {
-            buffer[i]=buffer[i+1];
+        if (channel%2==0) {
+            for (int i=0; i<998; i++) {
+                buffer[i]=buffer[i+1];
+            }
+            buffer[999]=sample*sample;
+            sum+=buffer[999]-buffer[0];
         }
-        buffer[99]=sample*sample;
-        sum+=buffer[99]-buffer[0];
         RMSLevel = sum/10;
         return sqrt(RMSLevel);
     }
     
 private:
     double sum;
-    double buffer[100];
+    double* buffer;
 };
 
 #endif /* RMS_h */

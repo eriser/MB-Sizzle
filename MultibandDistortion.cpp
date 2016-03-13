@@ -70,7 +70,7 @@ enum ELayout
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
-  mInputGain(0.), mOutputGain(0.), mControlsLinked(false), mOversampling(2)
+  mInputGain(0.), mOutputGain(0.), mControlsLinked(false), mOversampling(8)
 {
   TRACE;
   
@@ -98,7 +98,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
     mDriveSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mMixSmoother[i] = CParamSmooth(5.0,GetSampleRate());
-
+   // rmsDry[i] = RMSFollower();
+   // rmsWet[i] = RMSFollower();
   }
   
   //======================================================================================================
@@ -121,10 +122,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   GetParam(kControlsLinked)->InitBool("Link Distortion Modes", false);
   
-  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 24., 0.0001, "dB");
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 36., 0.0001, "dB");
   
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
@@ -153,7 +154,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode1)->SetDisplayText(4, "Tanh");
   GetParam(kDistMode1)->SetDisplayText(5, "Tube");
   
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
@@ -161,7 +162,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode2)->SetDisplayText(4, "Tanh");
   GetParam(kDistMode2)->SetDisplayText(5, "Tube");
   
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
@@ -169,7 +170,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode3)->SetDisplayText(4, "Tanh");
   GetParam(kDistMode3)->SetDisplayText(5, "Tube");
   
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
@@ -177,7 +178,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
+  GetParam(kDistMode4)->SetDisplayText(4, "Tanh");
   GetParam(kDistMode4)->SetDisplayText(5, "Tube");
   
   //Bitmaps
@@ -376,18 +377,19 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   //if (m > 0) sample = 0.;
     //mUpsample.Process(sample, mAntiAlias.Coeffs());
     //sample = (double)mOversampling * mUpsample.Output();
-    
+  
+  
+    //Excite
     //Soft asymmetrical clipping
     if (distType==0) {
       double threshold = 0.6;
       if(sample>threshold)
         sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
       else if(sample >1)
-        //sample = (sample + 1)/2;
         sample=1;
-     // sample=sample*.9+drySample*.1;
     }
-    
+  
+    //Fat
     //arctan waveshaper
     else if(distType==1){
       sample =  1/3. * fastAtan(sample * 3);
@@ -415,27 +417,27 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //algorithm by hellfire@upb.de, from musicdsp.org archives
     else if(distType==3){
       double threshold = .6;
-      if (sample > threshold || sample < - threshold) {
+      if (sample > threshold || sample < - threshold)
         sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
-      }
+      
     }
     
-    //First 5 order chebyshev polynomials
+    //Tanh Waveshaper
     else if (distType==4){
       sample=1/3. * tanh(sample * 3.);
     }
     
     //tube emulation
+    //From EECS352 final project by Taylor Zheng, Jixiao Ma, and Tae Hun Kim
     else if (distType==5){
-      sample = sin(sample) + pow(std::abs(sin(sample)), 2);
-      sample = sin(sample) + pow(std::abs(sin(sample)), 4);
-      sample = sin(sample) + pow(std::abs(sin(sample)), 8);
+      double threshold = 0.6;
+      sample = log(sample - threshold + 1)/log(20);
       
     }
-    // Downsample
-   // mDownsample.Process(sample, mAntiAlias.Coeffs());
-    //if (m == 0) sample = mDownsample.Output();
- //xwx }
+      //Downsample
+    //  mDownsample.Process(sample, mAntiAlias.Coeffs());
+      //if (m == 0) sample = mDownsample.Output();
+    //}
   return sample;
 }
 
@@ -469,6 +471,8 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         
         //Gain comp
         sample *= DBToAmp(mOutputSmoother[0].process(-.85 * mDrive[0]));
+        
+        //sample *= rmsDry[0].getRMS(drySample, i) / rmsWet[0].getRMS(sample, i);
         
         //Mix
         sample = mMix[0] * sample + (1-mMix[0]) * drySample;
@@ -509,6 +513,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               //Gain comp
               samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.85*mDrive[j]));
               
+              //samplesFilteredWet[j] *= rmsDry[j].getRMS(samplesFilteredDry[j], i) / rmsWet[j].getRMS(samplesFilteredWet[j], i);
               
               //Mix
               samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];

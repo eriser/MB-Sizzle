@@ -6,7 +6,7 @@
 #include <math.h>
 #include "PeakFollower.h"
 
-const float HALF_LIFE = .3;
+const float HALF_LIFE = .5;
 const float VERY_SMALL_FLOAT = 0.0001;
 
 // halfLife = time in seconds for output to decay to half value after an impulse
