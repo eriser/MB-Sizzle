@@ -224,6 +224,13 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   
   //Mute+solo controls
   
+  GetParam(kSolo1)->SetIsMeta(true);
+  GetParam(kSolo2)->SetIsMeta(true);
+  GetParam(kSolo3)->SetIsMeta(true);
+  GetParam(kSolo4)->SetIsMeta(true);
+
+
+  
   mSoloControl1 = new ISwitchControl(this, kDrive1X+44, kDriveY+180, kSolo1, &solo);
   mSoloControl2 = new ISwitchControl(this, kDrive2X+44, kDriveY+180, kSolo2, &solo);
   mSoloControl3 = new ISwitchControl(this, kDrive3X+44, kDriveY+180, kSolo3, &solo);
