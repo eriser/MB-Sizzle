@@ -37,6 +37,5 @@ dependencies: \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/RMS.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/LinkwitzRiley.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/CFxRbjFilter.h \
-  /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/PeakFollower.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/besselfilter.h \
   /Users/michael/PluginDev/wdl-ol-michaeldonovan/IPlugExamples/EECS352-Multiband-Distortion-Plugin/../../WDL/IPlug/IPlug_include_in_plug_src.h
