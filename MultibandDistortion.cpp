@@ -35,7 +35,7 @@ enum EParams
   kMute2,
   kMute3,
   kMute4,
-  kDistModeLinked,
+  kControlsLinked,
   kSpectBypass,
   kCrossoverFreq1,
   kCrossoverFreq2,
@@ -70,7 +70,7 @@ enum ELayout
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
-  mInputGain(0.), mOutputGain(0.), mDistModesLinked(false), mOversampling(2)
+  mInputGain(0.), mOutputGain(0.), mControlsLinked(false), mOversampling(2)
 {
   TRACE;
   
@@ -119,12 +119,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kOutputGain)->InitDouble("Output Gain", 0., -36., 36., 0.0001, "dB");
   GetParam(kOutputClipping)->InitBool("Output Clipping", false);
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
-  GetParam(kDistModeLinked)->InitBool("Link Distortion Modes", false);
+  GetParam(kControlsLinked)->InitBool("Link Distortion Modes", false);
   
-  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 36., 0.0001, "dB");
-  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 36., 0.0001, "dB");
-  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 36., 0.0001, "dB");
-  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 24., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 24., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 24., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 24., 0.0001, "dB");
   
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
@@ -201,26 +201,40 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   pGraphics->AttachControl(mBand4LevelMeter);
   
   //Mode Link control
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kDistModeLinked, &link));
+  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kControlsLinked, &link));
   
   //Drive+Mix sliders
+  mDriveControl1 = new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider);
+  mDriveControl2 = new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider);
+  mDriveControl3 = new IKnobMultiControl(this, kDrive3X, kDriveY, kDrive3, &slider);
+  mDriveControl4 = new IKnobMultiControl(this, kDrive4X, kDriveY, kDrive4, &slider);
+  pGraphics->AttachControl(mDriveControl1);
+  pGraphics->AttachControl(mDriveControl2);
+  pGraphics->AttachControl(mDriveControl3);
+  pGraphics->AttachControl(mDriveControl4);
   
-  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive1X, kDriveY, kDrive1, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive2X, kDriveY, kDrive2, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive3X, kDriveY, kDrive3, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kDrive4X, kDriveY, kDrive4, &slider));
-  
-  pGraphics->AttachControl(new IKnobMultiControl(this, kMix1X, kDriveY, kMix1, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kMix2X, kDriveY, kMix2, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kMix3X, kDriveY, kMix3, &slider));
-  pGraphics->AttachControl(new IKnobMultiControl(this, kMix4X, kDriveY, kMix4, &slider));
+  mMixControl1 = new IKnobMultiControl(this, kMix1X, kDriveY, kMix1, &slider);
+  mMixControl2 = new IKnobMultiControl(this, kMix2X, kDriveY, kMix2, &slider);
+  mMixControl3 = new IKnobMultiControl(this, kMix3X, kDriveY, kMix2, &slider);
+  mMixControl4 = new IKnobMultiControl(this, kMix4X, kDriveY, kMix3, &slider);
+
+  pGraphics->AttachControl(mMixControl1);
+  pGraphics->AttachControl(mMixControl2);
+  pGraphics->AttachControl(mMixControl3);
+  pGraphics->AttachControl(mMixControl4);
+
   
   //Bypass controls
+  mBypassControl1 = new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Enable, &bypass);
+  mBypassControl2 = new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Enable, &bypass);
+  mBypassControl3 = new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Enable, &bypass);
+  mBypassControl4 = new ISwitchControl(this, kDrive4X, kDriveY+180, kBand4Enable, &bypass);
   
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive1X, kDriveY+180, kBand1Enable, &bypass));
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive2X, kDriveY+180, kBand2Enable, &bypass));
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive3X, kDriveY+180, kBand3Enable, &bypass));
-  pGraphics->AttachControl(new ISwitchControl(this, kDrive4X, kDriveY+180, kBand4Enable, &bypass));
+  pGraphics->AttachControl(mBypassControl1);
+  pGraphics->AttachControl(mBypassControl2);
+  pGraphics->AttachControl(mBypassControl3);
+  pGraphics->AttachControl(mBypassControl4);
+
   
   //Mute+solo controls
   
@@ -239,6 +253,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   pGraphics->AttachControl(mSoloControl2);
   pGraphics->AttachControl(mSoloControl3);
   pGraphics->AttachControl(mSoloControl4);
+  
   
   mMuteControl1 = new ISwitchControl(this, kDrive1X+44, kDriveY+196, kMute1, &mute);
   mMuteControl2 = new ISwitchControl(this, kDrive2X+44, kDriveY+196, kMute2, &mute);
@@ -330,7 +345,8 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   //==================================================================================================================================
   
   //Initialize crossover control
-  pGraphics->AttachControl(new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3));
+  mCrossoverControl = new ICrossoverControl(this, IRECT(iView.L,iView.T,iView.R, iView.B-20), &LIGHTER_GRAY, &DARK_GRAY, &LIGHT_ORANGE, kCrossoverFreq1, kCrossoverFreq2, kCrossoverFreq3);
+  pGraphics->AttachControl(mCrossoverControl);
   
   pGraphics->AttachControl(new ISwitchControl(this, kSpectBypassX, kSpectBypassY, kSpectBypass, &bypassSmall));
   
@@ -355,15 +371,15 @@ MultibandDistortion::~MultibandDistortion(){};
 
 double MultibandDistortion::ProcessDistortion(double sample, int distType)
 {
-  for (int m; m<mOversampling; m++) {
+  //for (int m; m<mOversampling; m++) {
     // Upsample
-    if (m > 0) sample = 0.;
-    mUpsample.Process(sample, mAntiAlias.Coeffs());
-    sample = (double)mOversampling * mUpsample.Output();
+  //if (m > 0) sample = 0.;
+    //mUpsample.Process(sample, mAntiAlias.Coeffs());
+    //sample = (double)mOversampling * mUpsample.Output();
     
     //Soft asymmetrical clipping
     if (distType==0) {
-      double threshold = 0.8;
+      double threshold = 0.6;
       if(sample>threshold)
         sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
       else if(sample >1)
@@ -380,7 +396,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //Sine shaper
     //based on Jon Watte's waveshaper algorithm. Modified for softer clipping
     else if(distType==2){
-      double amount = 1.6;
+      double amount = 3.;
       double z = M_PI * amount/4.0;
       double s = 1/sin(z);
       double b = 1 / amount;
@@ -398,7 +414,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //Foldback Distortion
     //algorithm by hellfire@upb.de, from musicdsp.org archives
     else if(distType==3){
-      double threshold = .9;
+      double threshold = .6;
       if (sample > threshold || sample < - threshold) {
         sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
       }
@@ -406,7 +422,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     
     //First 5 order chebyshev polynomials
     else if (distType==4){
-      sample=tanh(sample);
+      sample=1/3. * tanh(sample * 3.);
     }
     
     //tube emulation
@@ -417,9 +433,9 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
       
     }
     // Downsample
-    mDownsample.Process(sample, mAntiAlias.Coeffs());
-    if (m == 0) sample = mDownsample.Output();
-  }
+   // mDownsample.Process(sample, mAntiAlias.Coeffs());
+    //if (m == 0) sample = mDownsample.Output();
+ //xwx }
   return sample;
 }
 
@@ -443,76 +459,95 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       //Apply input gain
       sample *= DBToAmp(mInputGainSmoother.process(mInputGain)); //parameter smoothing prevents popping when changing parameter value
       
-      
-      
-      
-      samplesFilteredDry[0]=band1lp.process(sample,i);
-      //   samplesFilteredDry[0]=allpass1->process(samplesFilteredDry[0]);
-      // samplesFilteredDry[0]=allpass2->process(samplesFilteredDry[0]);
-      samplesFilteredDry[1]=band2hp.process(sample, i);
-      samplesFilteredDry[3]=band4hp.process(samplesFilteredDry[1], i);
-      //samplesFilteredDry[3]=allpass3->process(samplesFilteredDry[3]);
-      samplesFilteredDry[1]=band3lp.process(samplesFilteredDry[1],i);
-      samplesFilteredDry[2]=band3hp.process(samplesFilteredDry[1],i);
-      samplesFilteredDry[1]=band2lp.process(samplesFilteredDry[1],i);
-      
-//      samplesFilteredDry[0] = band1lp->process(sample, i);
-//      samplesFilteredDry[1] = band2hp->process(sample, i);
-//      samplesFilteredDry[1] = band2lp->process(sample, i);
-//      samplesFilteredDry[2] = band3hp->process(sample, i);
-//      samplesFilteredDry[2] = band3lp->process(sample, i);
-//      samplesFilteredDry[3] = band4hp->process(sample, i);
-//      
-      
-      
-      //Loop through bands, process samples
-      for (int j=0; j<4; j++) {
-        if (mMute[j]||WDL_DENORMAL_OR_ZERO_DOUBLE_AGGRESSIVE(&samplesFilteredDry[j])) {
-          samplesFilteredWet[j]=0;
+      if (mControlsLinked) {
+        double drySample = sample;
+        //Pre gain
+        sample *= DBToAmp(mDriveSmoother[0].process(mDrive[0]));
+        
+        //Distortion
+        sample = ProcessDistortion(sample, mDistMode[0]);
+        
+        //Gain comp
+        sample *= DBToAmp(mOutputSmoother[0].process(-.85 * mDrive[0]));
+        
+        //Mix
+        sample = mMix[0] * sample + (1-mMix[0]) * drySample;
+        
+        //Update level meters
+        if (GetGUI()) {
+          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(sample))+1);
+          mBand2LevelMeter->SetValueFromPlug(0);
+          mBand3LevelMeter->SetValueFromPlug(0);
+          mBand4LevelMeter->SetValueFromPlug(0);
+        }
+      }
+  
+      else{
+        //Filterbank
+        samplesFilteredDry[0]=band1lp.process(sample,i);
+        samplesFilteredDry[1]=band2hp.process(sample, i);
+        samplesFilteredDry[3]=band4hp.process(samplesFilteredDry[1], i);
+        samplesFilteredDry[1]=band3lp.process(samplesFilteredDry[1],i);
+        samplesFilteredDry[2]=band3hp.process(samplesFilteredDry[1],i);
+        samplesFilteredDry[1]=band2lp.process(samplesFilteredDry[1],i);
+        
+        
+        //Loop through bands, process samples
+        for (int j=0; j<4; j++) {
+          if (mMute[j]||WDL_DENORMAL_OR_ZERO_DOUBLE_AGGRESSIVE(&samplesFilteredDry[j])) {
+            samplesFilteredWet[j]=0;
+          }
+          else {
+            samplesFilteredWet[j]=samplesFilteredDry[j];
+            if (mEnable[j]) {
+              samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j].process(mDrive[j]));
+              
+              //Distortion
+              samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
+              
+              
+              //Gain comp
+              samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.85*mDrive[j]));
+              
+              
+              //Mix
+              samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
+              
+              
+            }
+          }
+          
+          
+          if (GetGUI()) {
+            mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
+            mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
+            mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
+            mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
+          }
+          
         }
 
-        else {
-          samplesFilteredWet[j]=samplesFilteredDry[j];
-          if (mEnable[j]) {
-            samplesFilteredWet[j]*=DBToAmp(mDriveSmoother[j].process(mDrive[j]));
-            
-            if(mDistModesLinked){
-              samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[0]);
-            }
-            else{
-              samplesFilteredWet[j]=ProcessDistortion(samplesFilteredWet[j], mDistMode[j]);
-            }
-            
-            //Gain comp
-            samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.9*mDrive[j]));
-            
-
-            //Mix
-            samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
-            
-            
+        
+        //Update level meters
+        if (GetGUI()) {
+          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
+          mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
+          mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
+          mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
+        }
+        
+        //Sum output
+        sample=0;
+        for(int j=0; j<4; j++){
+          if (mSolo[j]) {
+            sample=samplesFilteredWet[j];
+            break;
+          }
+          else{
+            sample+=samplesFilteredWet[j];
           }
         }
-      }
-      
-      if (GetGUI()) {
-        mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
-        mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
-        mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
-        mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
-      }
-      
-      //Sum output
-      sample=0;
-      for(int j=0; j<4; j++){
-        if (mSolo[j]) {
-          sample=samplesFilteredWet[j];
-          break;
-        }
-        else{
-          sample+=samplesFilteredWet[j];
-        }
-      }
+      }//End multiband processing block
       
       //Clipping
       if(mOutputClipping){
@@ -523,7 +558,6 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
           sample = -1*DBToAmp(-0.1);
         }
       }
-      
       
       
       
@@ -617,17 +651,65 @@ void MultibandDistortion::OnParamChange(int paramIdx)
       mEnable[3]=GetParam(kBand4Enable)->Value();
       break;
       
-    case kDistModeLinked:
-      mDistModesLinked=GetParam(kDistModeLinked)->Value();
-      if (mDistModesLinked) {
+    case kControlsLinked:
+      mControlsLinked=GetParam(kControlsLinked)->Value();
+      if (mControlsLinked) {
         mDistMode2->GrayOut(true);
         mDistMode3->GrayOut(true);
         mDistMode4->GrayOut(true);
+        
+        mDriveControl2->GrayOut(true);
+        mDriveControl3->GrayOut(true);
+        mDriveControl4->GrayOut(true);
+        
+        mMixControl2->GrayOut(true);
+        mMixControl3->GrayOut(true);
+        mMixControl4->GrayOut(true);
+        
+        mBypassControl2->GrayOut(true);
+        mBypassControl3->GrayOut(true);
+        mBypassControl4->GrayOut(true);
+        
+        mSoloControl1->GrayOut(true);
+        mSoloControl2->GrayOut(true);
+        mSoloControl3->GrayOut(true);
+        mSoloControl4->GrayOut(true);
+
+        mMuteControl1->GrayOut(true);
+        mMuteControl2->GrayOut(true);
+        mMuteControl3->GrayOut(true);
+        mMuteControl4->GrayOut(true);
+
+        mCrossoverControl->GrayOut(true);
       }
       else{
         mDistMode2->GrayOut(false);
         mDistMode3->GrayOut(false);
         mDistMode4->GrayOut(false);
+        
+        mDriveControl2->GrayOut(false);
+        mDriveControl3->GrayOut(false);
+        mDriveControl4->GrayOut(false);
+        
+        mMixControl2->GrayOut(false);
+        mMixControl3->GrayOut(false);
+        mMixControl4->GrayOut(false);
+        
+        mBypassControl2->GrayOut(false);
+        mBypassControl3->GrayOut(false);
+        mBypassControl4->GrayOut(false);
+        
+        mSoloControl1->GrayOut(false);
+        mSoloControl2->GrayOut(false);
+        mSoloControl3->GrayOut(false);
+        mSoloControl4->GrayOut(false);
+        
+        mMuteControl1->GrayOut(false);
+        mMuteControl2->GrayOut(false);
+        mMuteControl3->GrayOut(false);
+        mMuteControl4->GrayOut(false);
+        
+        mCrossoverControl->GrayOut(false);
       }
       break;
       

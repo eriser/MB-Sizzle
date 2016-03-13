@@ -62,33 +62,35 @@ public:
     ~ICrossoverControl() {};
     
     bool Draw(IGraphics *pGraphics){
-        int y = mRECT.T+mRECT.H()/2;
-        for (int i=0; i<3; i++) {
-            CrossoverHandle* current = &handles[i];
-            
-     
-            if(i==selected.uid-1){
-                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, y+4);
-                pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), y-4, this->mRECT.T);
-
-                pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 3);
-                pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 4);
+        if(!IsGrayed()){
+            int y = mRECT.T+mRECT.H()/2;
+            for (int i=0; i<3; i++) {
+                CrossoverHandle* current = &handles[i];
+                
+                
+                if(i==selected.uid-1){
+                    pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), this->mRECT.B, y+4);
+                    pGraphics->DrawVerticalLine(mColor3, percentToCoordinates(current->x), y-4, this->mRECT.T);
+                    
+                    pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 3);
+                    pGraphics->DrawCircle(mColor3, percentToCoordinates(current->x), y, 4);
+                }
+                else{
+                    pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, y+4);
+                    pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), y-4, this->mRECT.T);
+                    
+                    pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 3);
+                    pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 4);
+                }
+                
+                //pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
+                
+                
+                IText text = IText(12, &COLOR_WHITE, "Futura");
+                const char* str = (formatFreq(getFreq(i+1)));
+                IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B+2, percentToCoordinates(current->x)+10, this->mRECT.B+22);
+                pGraphics->DrawIText(&text, (char*)str, &textRect);
             }
-            else{
-                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), this->mRECT.B, y+4);
-                pGraphics->DrawVerticalLine(mColor, percentToCoordinates(current->x), y-4, this->mRECT.T);
-
-                pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 3);
-                pGraphics->DrawCircle(mColor, percentToCoordinates(current->x), y, 4);
-            }
-            
-            //pGraphics->FillCircle(mColor2, percentToCoordinates(current->x), y, 2);
-
-            
-            IText text = IText(12, &COLOR_WHITE, "Futura");
-            const char* str = (formatFreq(getFreq(i+1)));
-            IRECT textRect = IRECT(percentToCoordinates(current->x)-10, this->mRECT.B+2, percentToCoordinates(current->x)+10, this->mRECT.B+22);
-            pGraphics->DrawIText(&text, (char*)str, &textRect);
         }
         return true;
     };
