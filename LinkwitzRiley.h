@@ -2,8 +2,8 @@
 //  LinkwitzRiley.h
 //  MultibandDistortion
 //
-//  Created by Michael on 3/9/16.
-// Original from T. Lossius - ttblue project
+//  Created by Michael Donovan on 3/9/16.
+//  Original from T. Lossius - ttblue project
 //
 
 #ifndef LinkwitzRiley_h

@@ -41,15 +41,6 @@ private:
   CParamSmooth mOutputSmoother[4];
   CParamSmooth mMixSmoother[4];
   
-  CParamSmooth mDrive1Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mOutput1Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mDrive2Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mOutput2Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mDrive3Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mOutput3Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mDrive4Smoother = CParamSmooth(5.0,GetSampleRate());
-  CParamSmooth mOutput4Smoother = CParamSmooth(5.0,GetSampleRate());
-  
   CParamSmooth mCrossoverSmoother1 = CParamSmooth(5.0,GetSampleRate());
   CParamSmooth mCrossoverSmoother2 = CParamSmooth(5.0,GetSampleRate());
   CParamSmooth mCrossoverSmoother3 = CParamSmooth(5.0,GetSampleRate());
@@ -73,10 +64,7 @@ private:
   IPopUpMenuControl* mDistMode3;
   IPopUpMenuControl* mDistMode4;
 
-  IBitmapControl* mBand1LevelMeter;
-  IBitmapControl* mBand2LevelMeter;
-  IBitmapControl* mBand3LevelMeter;
-  IBitmapControl* mBand4LevelMeter;
+
 
   IKnobMultiControl* mDriveControl1;
   IKnobMultiControl* mDriveControl2;
@@ -90,7 +78,9 @@ private:
   
   ICrossoverControl* mCrossoverControl;
   
-  PeakFollower* mPeakFollower;
+  IBitmapControl* mLevelMeter[4];
+  
+  PeakFollower* mPeakFollower[4];
 
   
   //Set Colors
@@ -124,7 +114,9 @@ private:
   double mOutputGain;
   double RMSDry, RMSWet;
 
-  
+  RMSFollower rmsDry[4];
+  RMSFollower rmsWet[4];
+
   double mCrossoverFreq1;
   double mCrossoverFreq2;
   double mCrossoverFreq3;

@@ -70,7 +70,7 @@ enum ELayout
 
 MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo),
-  mInputGain(0.), mOutputGain(0.), mControlsLinked(false), mOversampling(2)
+  mInputGain(0.), mOutputGain(0.), mControlsLinked(false), mOversampling(8)
 {
   TRACE;
   
@@ -92,13 +92,14 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   allpass3 =  CFxRbjFilter();
   allpass3.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
-  mPeakFollower = new PeakFollower(GetSampleRate());
 
   for (int i=0; i<4; i++) {
     mDriveSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mMixSmoother[i] = CParamSmooth(5.0,GetSampleRate());
-
+    mPeakFollower[i] = new PeakFollower(GetSampleRate());
+   // rmsDry[i] = RMSFollower();
+   // rmsWet[i] = RMSFollower();
   }
   
   //======================================================================================================
@@ -121,10 +122,10 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kSpectBypass)->InitBool("Analyzer On", true);
   GetParam(kControlsLinked)->InitBool("Link Distortion Modes", false);
   
-  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 24., 0.0001, "dB");
-  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 24., 0.0001, "dB");
+  GetParam(kDrive1)->InitDouble("Band 1: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive2)->InitDouble("Band 2: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive3)->InitDouble("Band 3: Drive", -3., -3., 36., 0.0001, "dB");
+  GetParam(kDrive4)->InitDouble("Band 4: Drive", -3., -3., 36., 0.0001, "dB");
   
   GetParam(kMix1)->InitDouble("Band 1: Mix", 100., 0., 100., 0.001, "%");
   GetParam(kMix2)->InitDouble("Band 2: Mix", 100., 0., 100., 0.001, "%");
@@ -153,32 +154,32 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode1)->SetDisplayText(1, "Fat");
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode1)->SetDisplayText(4, "Cheby");
-  GetParam(kDistMode1)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode1)->SetDisplayText(4, "Tanh");
+  GetParam(kDistMode1)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
   GetParam(kDistMode2)->SetDisplayText(0, "Excite");
   GetParam(kDistMode2)->SetDisplayText(1, "Fat");
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode2)->SetDisplayText(4, "Cheby");
-  GetParam(kDistMode2)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode2)->SetDisplayText(4, "Tanh");
+  GetParam(kDistMode2)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
   GetParam(kDistMode3)->SetDisplayText(0, "Excite");
   GetParam(kDistMode3)->SetDisplayText(1, "Fat");
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode3)->SetDisplayText(4, "Cheby");
-  GetParam(kDistMode3)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode3)->SetDisplayText(4, "Tanh");
+  GetParam(kDistMode3)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
   GetParam(kDistMode4)->SetDisplayText(0, "Excite");
   GetParam(kDistMode4)->SetDisplayText(1, "Fat");
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
-  GetParam(kDistMode4)->SetDisplayText(4, "Cheby");
-  GetParam(kDistMode4)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode4)->SetDisplayText(4, "Tanh");
+  GetParam(kDistMode4)->SetDisplayText(5, "Soft");
   
   //Bitmaps
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
@@ -188,17 +189,17 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IBitmap mute = pGraphics->LoadIBitmap(MUTE_ID, MUTE_FN,2);
   IBitmap link = pGraphics->LoadIBitmap(LINK_ID, LINK_FN,2);
   IBitmap levelMeter = pGraphics->LoadIBitmap(LEVELMETER_ID, LEVELMETER_FN, kLevelMeterFrames);
-  
+
   
   //Level Meters
-  mBand1LevelMeter = new IBitmapControl(this, kDrive1X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand1LevelMeter);
-  mBand2LevelMeter = new IBitmapControl(this, kDrive2X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand2LevelMeter);
-  mBand3LevelMeter = new IBitmapControl(this, kDrive3X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand3LevelMeter);
-  mBand4LevelMeter = new IBitmapControl(this, kDrive4X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand4LevelMeter);
+  mLevelMeter[0] = new IBitmapControl(this, kDrive1X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[0]);
+  mLevelMeter[1] = new IBitmapControl(this, kDrive2X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[1]);
+  mLevelMeter[2] = new IBitmapControl(this, kDrive3X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[2]);
+  mLevelMeter[3] = new IBitmapControl(this, kDrive4X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[3]);
   
   //Mode Link control
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kControlsLinked, &link));
@@ -376,21 +377,22 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
   //if (m > 0) sample = 0.;
     //mUpsample.Process(sample, mAntiAlias.Coeffs());
     //sample = (double)mOversampling * mUpsample.Output();
-    
+  
+  
+    //Excite
     //Soft asymmetrical clipping
     if (distType==0) {
       double threshold = 0.6;
       if(sample>threshold)
         sample = threshold + (sample - threshold) / (1 + pow(((sample - threshold)/(1 - threshold)), 2));
       else if(sample >1)
-        //sample = (sample + 1)/2;
         sample=1;
-     // sample=sample*.9+drySample*.1;
     }
-    
+  
+    //Fat
     //arctan waveshaper
     else if(distType==1){
-      sample =  1/3. * fastAtan(sample * 3);
+      sample =  1/2. * fastAtan(sample * 2);
     }
     
     //Sine shaper
@@ -415,27 +417,32 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //algorithm by hellfire@upb.de, from musicdsp.org archives
     else if(distType==3){
       double threshold = .6;
-      if (sample > threshold || sample < - threshold) {
+      if (sample > threshold || sample < - threshold)
         sample = fabs(fabs(fmod(sample - threshold, threshold * 4)) - threshold * 2) - threshold;
-      }
+      
     }
     
-    //First 5 order chebyshev polynomials
+    //Tanh Waveshaper
     else if (distType==4){
       sample=1/3. * tanh(sample * 3.);
     }
     
-    //tube emulation
+    //soft saturation
+    // from "A perceptual approach on clipping and saturation" by Stefania Barbati and Thomas Serafini for simulanalog.org
     else if (distType==5){
-      sample = sin(sample) + pow(std::abs(sin(sample)), 2);
-      sample = sin(sample) + pow(std::abs(sin(sample)), 4);
-      sample = sin(sample) + pow(std::abs(sin(sample)), 8);
-      
+      if(sample>=1)
+        sample = .5;
+      else if(sample<1 && sample >= 0)
+        sample = -.5 * sample * sample + sample;
+      else if(sample<0 && sample > -1)
+        sample = .5 * sample * sample + sample;
+      else
+        sample = -.5;
     }
-    // Downsample
-   // mDownsample.Process(sample, mAntiAlias.Coeffs());
-    //if (m == 0) sample = mDownsample.Output();
- //xwx }
+      //Downsample
+    //  mDownsample.Process(sample, mAntiAlias.Coeffs());
+      //if (m == 0) sample = mDownsample.Output();
+    //}
   return sample;
 }
 
@@ -462,23 +469,25 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       if (mControlsLinked) {
         double drySample = sample;
         //Pre gain
-        sample *= DBToAmp(mDriveSmoother[0].process(mDrive[0]));
+        sample *= DBToAmp(mDriveSmoother[0].process(mDrive[0])/1.5);
         
         //Distortion
         sample = ProcessDistortion(sample, mDistMode[0]);
         
         //Gain comp
-        sample *= DBToAmp(mOutputSmoother[0].process(-.85 * mDrive[0]));
+        sample *= DBToAmp(mOutputSmoother[0].process(-.7 * mDrive[0])/1.5);
+        
+        //sample *= rmsDry[0].getRMS(drySample, i) / rmsWet[0].getRMS(sample, i);
         
         //Mix
         sample = mMix[0] * sample + (1-mMix[0]) * drySample;
         
         //Update level meters
         if (GetGUI()) {
-          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(sample))+1);
-          mBand2LevelMeter->SetValueFromPlug(0);
-          mBand3LevelMeter->SetValueFromPlug(0);
-          mBand4LevelMeter->SetValueFromPlug(0);
+          mLevelMeter[0]->SetValueFromPlug(log10(mPeakFollower[0]->process(sample))+1);
+          mLevelMeter[1]->SetValueFromPlug(0);
+          mLevelMeter[2]->SetValueFromPlug(0);
+          mLevelMeter[3]->SetValueFromPlug(0);
         }
       }
   
@@ -507,34 +516,25 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               
               
               //Gain comp
-              samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.85*mDrive[j]));
+              samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.7 * mDrive[j]));
               
+              //samplesFilteredWet[j] *= rmsDry[j].getRMS(samplesFilteredDry[j], i) / rmsWet[j].getRMS(samplesFilteredWet[j], i);
               
               //Mix
               samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
               
+              //Update level meters
+              if (GetGUI()) {
+                mLevelMeter[j]->SetValueFromPlug(log10(mPeakFollower[j]->process(samplesFilteredWet[j]))+1);
+              }
               
             }
           }
           
           
-          if (GetGUI()) {
-            mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
-            mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
-            mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
-            mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
-          }
-          
         }
 
-        
-        //Update level meters
-        if (GetGUI()) {
-          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
-          mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
-          mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
-          mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
-        }
+
         
         //Sum output
         sample=0;
