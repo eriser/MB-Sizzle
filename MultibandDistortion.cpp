@@ -155,7 +155,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode1)->SetDisplayText(2, "Sine");
   GetParam(kDistMode1)->SetDisplayText(3, "Fold");
   GetParam(kDistMode1)->SetDisplayText(4, "Tanh");
-  GetParam(kDistMode1)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode1)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode2)->InitEnum("Band 2: Mode", 0, kNumModes);
   GetParam(kDistMode2)->SetDisplayText(0, "Excite");
@@ -163,7 +163,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode2)->SetDisplayText(2, "Sine");
   GetParam(kDistMode2)->SetDisplayText(3, "Fold");
   GetParam(kDistMode2)->SetDisplayText(4, "Tanh");
-  GetParam(kDistMode2)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode2)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode3)->InitEnum("Band 3: Mode", 0, kNumModes);
   GetParam(kDistMode3)->SetDisplayText(0, "Excite");
@@ -171,7 +171,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode3)->SetDisplayText(2, "Sine");
   GetParam(kDistMode3)->SetDisplayText(3, "Fold");
   GetParam(kDistMode3)->SetDisplayText(4, "Tanh");
-  GetParam(kDistMode3)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode3)->SetDisplayText(5, "Soft");
   
   GetParam(kDistMode4)->InitEnum("Band 4: Mode", 0, kNumModes);
   GetParam(kDistMode4)->SetDisplayText(0, "Excite");
@@ -179,7 +179,7 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   GetParam(kDistMode4)->SetDisplayText(2, "Sine");
   GetParam(kDistMode4)->SetDisplayText(3, "Fold");
   GetParam(kDistMode4)->SetDisplayText(4, "Tanh");
-  GetParam(kDistMode4)->SetDisplayText(5, "Tube");
+  GetParam(kDistMode4)->SetDisplayText(5, "Soft");
   
   //Bitmaps
   IBitmap slider = pGraphics->LoadIBitmap(SLIDER_ID, SLIDER_FN, kSliderFrames);
@@ -392,7 +392,7 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
     //Fat
     //arctan waveshaper
     else if(distType==1){
-      sample =  1/3. * fastAtan(sample * 3);
+      sample =  1/2. * fastAtan(sample * 2);
     }
     
     //Sine shaper
@@ -427,12 +427,17 @@ double MultibandDistortion::ProcessDistortion(double sample, int distType)
       sample=1/3. * tanh(sample * 3.);
     }
     
-    //tube emulation
-    //From EECS352 final project by Taylor Zheng, Jixiao Ma, and Tae Hun Kim
+    //soft saturation
+    // from "A perceptual approach on clipping and saturation" by Stefania Barbati and Thomas Serafini for simulanalog.org
     else if (distType==5){
-      double threshold = 0.6;
-      sample = log(sample - threshold + 1)/log(20);
-      
+      if(sample>=1)
+        sample = .5;
+      else if(sample<1 && sample >= 0)
+        sample = -.5 * sample * sample + sample;
+      else if(sample<0 && sample > -1)
+        sample = .5 * sample * sample + sample;
+      else
+        sample = -.5;
     }
       //Downsample
     //  mDownsample.Process(sample, mAntiAlias.Coeffs());
@@ -464,13 +469,13 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
       if (mControlsLinked) {
         double drySample = sample;
         //Pre gain
-        sample *= DBToAmp(mDriveSmoother[0].process(mDrive[0]));
+        sample *= DBToAmp(mDriveSmoother[0].process(mDrive[0])/1.5);
         
         //Distortion
         sample = ProcessDistortion(sample, mDistMode[0]);
         
         //Gain comp
-        sample *= DBToAmp(mOutputSmoother[0].process(-.85 * mDrive[0]));
+        sample *= DBToAmp(mOutputSmoother[0].process(-.7 * mDrive[0])/1.5);
         
         //sample *= rmsDry[0].getRMS(drySample, i) / rmsWet[0].getRMS(sample, i);
         
@@ -511,7 +516,7 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               
               
               //Gain comp
-              samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.85*mDrive[j]));
+              samplesFilteredWet[j] *= DBToAmp(mOutputSmoother[j].process(-.7 * mDrive[j]));
               
               //samplesFilteredWet[j] *= rmsDry[j].getRMS(samplesFilteredDry[j], i) / rmsWet[j].getRMS(samplesFilteredWet[j], i);
               
