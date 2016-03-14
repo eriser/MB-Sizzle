@@ -11,13 +11,11 @@ class PeakFollower {
 public:
     PeakFollower(double sampleRate);
     ~PeakFollower();
-    float processBand1(double input);
-    float processBand2(double input);
-    float processBand3(double input);
-    float processBand4(double input);
+    float process(double input);
 
 protected:
     float scalar;
+    float output;
 };
 
 

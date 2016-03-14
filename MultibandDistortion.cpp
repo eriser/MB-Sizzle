@@ -92,12 +92,12 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   allpass3 =  CFxRbjFilter();
   allpass3.calc_filter_coeffs(allpass, 1000, GetSampleRate(), .5, 0, false);
   
-  mPeakFollower = new PeakFollower(GetSampleRate());
 
   for (int i=0; i<4; i++) {
     mDriveSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mOutputSmoother[i] = CParamSmooth(5.0,GetSampleRate());
     mMixSmoother[i] = CParamSmooth(5.0,GetSampleRate());
+    mPeakFollower[i] = new PeakFollower(GetSampleRate());
    // rmsDry[i] = RMSFollower();
    // rmsWet[i] = RMSFollower();
   }
@@ -189,17 +189,17 @@ MultibandDistortion::MultibandDistortion(IPlugInstanceInfo instanceInfo):
   IBitmap mute = pGraphics->LoadIBitmap(MUTE_ID, MUTE_FN,2);
   IBitmap link = pGraphics->LoadIBitmap(LINK_ID, LINK_FN,2);
   IBitmap levelMeter = pGraphics->LoadIBitmap(LEVELMETER_ID, LEVELMETER_FN, kLevelMeterFrames);
-  
+
   
   //Level Meters
-  mBand1LevelMeter = new IBitmapControl(this, kDrive1X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand1LevelMeter);
-  mBand2LevelMeter = new IBitmapControl(this, kDrive2X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand2LevelMeter);
-  mBand3LevelMeter = new IBitmapControl(this, kDrive3X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand3LevelMeter);
-  mBand4LevelMeter = new IBitmapControl(this, kDrive4X-1, kDriveY+216, &levelMeter);
-  pGraphics->AttachControl(mBand4LevelMeter);
+  mLevelMeter[0] = new IBitmapControl(this, kDrive1X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[0]);
+  mLevelMeter[1] = new IBitmapControl(this, kDrive2X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[1]);
+  mLevelMeter[2] = new IBitmapControl(this, kDrive3X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[2]);
+  mLevelMeter[3] = new IBitmapControl(this, kDrive4X-1, kDriveY+216, &levelMeter);
+  pGraphics->AttachControl(mLevelMeter[3]);
   
   //Mode Link control
   pGraphics->AttachControl(new ISwitchControl(this, kDrive2X-36, kDriveY+154, kControlsLinked, &link));
@@ -484,10 +484,10 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
         
         //Update level meters
         if (GetGUI()) {
-          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(sample))+1);
-          mBand2LevelMeter->SetValueFromPlug(0);
-          mBand3LevelMeter->SetValueFromPlug(0);
-          mBand4LevelMeter->SetValueFromPlug(0);
+          mLevelMeter[0]->SetValueFromPlug(log10(mPeakFollower[0]->process(sample))+1);
+          mLevelMeter[1]->SetValueFromPlug(0);
+          mLevelMeter[2]->SetValueFromPlug(0);
+          mLevelMeter[3]->SetValueFromPlug(0);
         }
       }
   
@@ -523,28 +523,18 @@ void MultibandDistortion::ProcessDoubleReplacing(double** inputs, double** outpu
               //Mix
               samplesFilteredWet[j]= mMix[j]*samplesFilteredWet[j]+(1-mMix[j])*samplesFilteredDry[j];
               
+              //Update level meters
+              if (GetGUI()) {
+                mLevelMeter[j]->SetValueFromPlug(log10(mPeakFollower[j]->process(samplesFilteredWet[j]))+1);
+              }
               
             }
           }
           
           
-          if (GetGUI()) {
-            mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
-            mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
-            mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
-            mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
-          }
-          
         }
 
-        
-        //Update level meters
-        if (GetGUI()) {
-          mBand1LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand1(samplesFilteredWet[0]))+1);
-          mBand2LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand2(samplesFilteredWet[1]))+1);
-          mBand3LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand3(samplesFilteredWet[2]))+1);
-          mBand4LevelMeter->SetValueFromPlug(log10(mPeakFollower->processBand4(samplesFilteredWet[3]))+1);
-        }
+
         
         //Sum output
         sample=0;
